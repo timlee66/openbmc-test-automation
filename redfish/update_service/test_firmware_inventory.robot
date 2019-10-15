@@ -130,8 +130,8 @@ Verify Redfish BIOS Version
     [Tags]  Verify_Redfish_BIOS_Version
 
     ${bios_version}=  Redfish.Get Attribute  /redfish/v1/Systems/system/  BiosVersion
-    ${pnor_version}=  Get PNOR Version
-    Should Be Equal  ${pnor_version}  ${bios_version}
+    ${BIOS_Version}=  Get BIOS Version
+    Should Be Equal  ${BIOS_Version}  ${bios_version}
 
 
 *** Keywords ***

@@ -818,6 +818,12 @@ Get BMC Version
     [Return]  ${output}
 
 
+Get BIOS Version
+    [Documentation]  Returns the BIOS version from the BMC.
+    ${cmd}=  Set Variable  grep ^VERSION_ID= /usr/share/phosphor-bmc-code-mgmt/bios-release | cut -f 2 -d '"' | cut -f 2 -d '='
+    ${output}  ${stderr}  ${rc}=  BMC Execute Command  ${cmd}
+    [Return]  ${output}
+
 Get PNOR Version
     [Documentation]  Returns the PNOR version from the BMC.
 
