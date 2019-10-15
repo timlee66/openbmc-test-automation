@@ -25,12 +25,17 @@ Verify Firmware Update ApplyTime Immediate
     #    }
     # }
 
-    Redfish.Patch  ${REDFISH_BASE_URI}UpdateService
-    ...  body={'HttpPushUriOptions' : {'HttpPushUriApplyTime' : {'ApplyTime' : 'Immediate'}}}
+    Redfish.Patch  /redfish/v1/UpdateService
+    ...  body={'ApplyTime' : 'Immediate'}
+    ${apply_time}=  Read Attribute   ${SOFTWARE_VERSION_URI}apply_time  RequestedApplyTime
+    Valid Value  apply_time  valid_values=["xyz.openbmc_project.Software.ApplyTime.RequestedApplyTimes.Immediate"]
 
-    ${http_push_uri_options}=  Redfish.Get Attribute  ${REDFISH_BASE_URI}UpdateService  HttpPushUriOptions
-    Rprint Vars  http_push_uri_options
-    Valid Value  http_push_uri_options["HttpPushUriApplyTime"]["ApplyTime"]  ['Immediate']
+    #Redfish.Patch  ${REDFISH_BASE_URI}UpdateService
+    #...  body={'HttpPushUriOptions' : {'HttpPushUriApplyTime' : {'ApplyTime' : 'Immediate'}}}
+
+    #${http_push_uri_options}=  Redfish.Get Attribute  ${REDFISH_BASE_URI}UpdateService  HttpPushUriOptions
+    #Rprint Vars  http_push_uri_options
+    #Valid Value  http_push_uri_options["HttpPushUriApplyTime"]["ApplyTime"]  ['Immediate']
 
 
 Verify Firmware Update ApplyTime OnReset
@@ -45,18 +50,28 @@ Verify Firmware Update ApplyTime OnReset
     #    }
     # }
 
-    Redfish.Patch  ${REDFISH_BASE_URI}UpdateService
-    ...  body={'HttpPushUriOptions' : {'HttpPushUriApplyTime' : {'ApplyTime' : 'OnReset'}}}
+    Redfish.Patch  /redfish/v1/UpdateService
+    ...  body={'ApplyTime' : 'OnReset'}
+    ${apply_time}=  Read Attribute   ${SOFTWARE_VERSION_URI}apply_time  RequestedApplyTime
+    Valid Value  apply_time  valid_values=["xyz.openbmc_project.Software.ApplyTime.RequestedApplyTimes.OnReset"]
 
-    ${http_push_uri_options}=  Redfish.Get Attribute  ${REDFISH_BASE_URI}UpdateService  HttpPushUriOptions
-    Rprint Vars  http_push_uri_options
-    Valid Value  http_push_uri_options["HttpPushUriApplyTime"]["ApplyTime"]  ['OnReset']
+
+    #Redfish.Patch  ${REDFISH_BASE_URI}UpdateService
+    #...  body={'HttpPushUriOptions' : {'HttpPushUriApplyTime' : {'ApplyTime' : 'OnReset'}}}
+
+    #${http_push_uri_options}=  Redfish.Get Attribute  ${REDFISH_BASE_URI}UpdateService  HttpPushUriOptions
+    #Rprint Vars  http_push_uri_options
+    #Valid Value  http_push_uri_options["HttpPushUriApplyTime"]["ApplyTime"]  ['OnReset']
 
 
 Verify Firmware Update ApplyTime Invalid
     [Documentation]  Verify supported apply time returns error on invalid value.
     [Tags]  Verify_Firmware_Update_ApplyTime_Invalid
 
-    Redfish.Patch  ${REDFISH_BASE_URI}UpdateService
-    ...  body={'HttpPushUriOptions' : {'HttpPushUriApplyTime' : {'ApplyTime' : 'Invalid'}}}
+    Redfish.Patch  /redfish/v1/UpdateService
+    ...  body={'ApplyTime' : 'Invalid'}
     ...  valid_status_codes=[${HTTP_BAD_REQUEST}]
+
+    #Redfish.Patch  ${REDFISH_BASE_URI}UpdateService
+    #...  body={'HttpPushUriOptions' : {'HttpPushUriApplyTime' : {'ApplyTime' : 'Invalid'}}}
+    #...  valid_status_codes=[${HTTP_BAD_REQUEST}]
