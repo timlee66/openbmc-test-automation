@@ -34,8 +34,7 @@ TFTP Download Install With ApplyTime OnReset Policy
     [Template]  TFTP Download Install
 
     # policy
-    OnReset
-
+    OnReset  ${IMAGE_FILE_NAME0}
 
 TFTP Download Install With ApplyTime Immediate Policy
     [Documentation]  Download image to BMC using TFTP with Immediate policy and verify installation.
@@ -43,7 +42,7 @@ TFTP Download Install With ApplyTime Immediate Policy
     [Template]  TFTP Download Install
 
     # policy
-    Immediate
+    Immediate  ${IMAGE_FILE_NAME1}
 
 
 ImageURI Download Install With ApplyTime OnReset Policy
@@ -52,8 +51,7 @@ ImageURI Download Install With ApplyTime OnReset Policy
     [Template]  ImageURI Download Install
 
     # policy
-    OnReset
-
+    OnReset  ${IMAGE_FILE_NAME0}
 
 ImageURI Download Install With ApplyTime Immediate Policy
     [Documentation]  Download image to BMC using ImageURI with Immediate policy and verify installation.
@@ -61,7 +59,7 @@ ImageURI Download Install With ApplyTime Immediate Policy
     [Template]  ImageURI Download Install
 
     # policy
-    Immediate
+    Immediate  ${IMAGE_FILE_NAME1}
 
 *** Keywords ***
 
@@ -70,12 +68,13 @@ Suite Setup Execution
 
     Redfish.Login
     Valid Value  TFTP_SERVER
-    Valid Value  IMAGE_FILE_NAME
+    Valid Value  IMAGE_FILE_NAME0
+    Valid Value  IMAGE_FILE_NAME1
 
 
 TFTP Download Install
     [Documentation]  Download image to BMC using TFTP with ApplyTime policy and verify installation.
-    [Arguments]  ${policy}
+    [Arguments]  ${policy}  ${image_file_name}
 
     # Description of argument(s):
     # policy     ApplyTime allowed values (e.g. "OnReset", "Immediate").
@@ -87,21 +86,21 @@ TFTP Download Install
 
     # Download image from TFTP server to BMC.
     Redfish.Post  /redfish/v1/UpdateService/Actions/UpdateService.SimpleUpdate
-    ...  body={"TransferProtocol" : "TFTP", "ImageURI" : "${TFTP_SERVER}/${IMAGE_FILE_NAME}"}
+    ...  body={"TransferProtocol" : "TFTP", "ImageURI" : "${TFTP_SERVER}/${image_file_name}"}
 
     # Wait for image tar file to download complete.
-    ${image_id}=  Wait Until Keyword Succeeds  60 sec  10 sec  Get Latest Image ID
+    ${image_id}=  Wait Until Keyword Succeeds  60 sec  0.1 sec  Get Latest Image ID
     Rprint Vars  image_id
 
     # Let the image get extracted and it should not fail.
-    Sleep  5s
-    Check Image Update Progress State  match_state='Disabled', 'Updating'  image_id=${image_id}
+    #Sleep  5s
+    #Check Image Update Progress State  match_state='Disabled', 'Updating'  image_id=${image_id}
 
     # Get image version currently installation in progress.
     ${install_version}=  Get Firmware Image Version  image_id=${image_id}
     Rprint Vars  install_version
 
-    Check Image Update Progress State  match_state='Updating'  image_id=${image_id}
+    #Check Image Update Progress State  match_state='Updating'  image_id=${image_id}
 
     # Wait for the image to install complete.
     Wait Until Keyword Succeeds  8 min  15 sec
@@ -118,7 +117,7 @@ TFTP Download Install
 
 ImageURI Download Install
     [Documentation]  Download image to BMC using ImageURI with ApplyTime policy and verify installation.
-    [Arguments]  ${policy}
+    [Arguments]  ${policy}  ${image_file_name}
 
     # Description of argument(s):
     # policy     ApplyTime allowed values (e.g. "OnReset", "Immediate").
@@ -130,20 +129,20 @@ ImageURI Download Install
 
     # Download image from TFTP server via ImageURI to BMC.
     Redfish.Post  /redfish/v1/UpdateService/Actions/UpdateService.SimpleUpdate
-    ...  body={"ImageURI": "tftp://${TFTP_SERVER}/${IMAGE_FILE_NAME}"}
+    ...  body={"ImageURI": "tftp://${TFTP_SERVER}/${image_file_name}"}
 
     # Wait for image tar file download to complete.
-    ${image_id}=  Wait Until Keyword Succeeds  60 sec  10 sec  Get Latest Image ID
+    ${image_id}=  Wait Until Keyword Succeeds  60 sec  0.1 sec  Get Latest Image ID
     Rprint Vars  image_id
 
     # Let the image get extracted and it should not fail.
-    Sleep  5s
-    Check Image Update Progress State  match_state='Disabled', 'Updating'  image_id=${image_id}
+    #Sleep  5s
+   # Check Image Update Progress State  match_state='Disabled', 'Updating'  image_id=${image_id}
 
     ${install_version}=  Get Firmware Image Version  image_id=${image_id}
     Rprint Vars  install_version
 
-    Check Image Update Progress State  match_state='Updating'  image_id=${image_id}
+    #Check Image Update Progress State  match_state='Updating'  image_id=${image_id}
 
     # Wait for the image to install complete.
     Wait Until Keyword Succeeds  8 min  15 sec
