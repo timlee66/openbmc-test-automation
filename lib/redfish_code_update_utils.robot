@@ -105,13 +105,13 @@ Get Software Inventory State By Version
 
 Redfish Upload Image And Check Progress State
     [Documentation]  Code update with ApplyTime.
-    [Arguments]  ${apply_time}
+    [Arguments]  ${apply_time}  ${image_file_path}
 
     # Description of argument(s):
     # policy     ApplyTime allowed values (e.g. "OnReset", "Immediate").
 
     Set ApplyTime  policy=${apply_Time}
-    Redfish Upload Image  ${REDFISH_BASE_URI}UpdateService  ${IMAGE_FILE_PATH}
+    Redfish Upload Image  /redfish/v1/UpdateService  ${image_file_path}
 
     ${image_id}=  Get Latest Image ID
     Rprint Vars  image_id
@@ -132,7 +132,7 @@ Redfish Upload Image And Check Progress State
 Reboot BMC And Verify BMC Image
     [Documentation]  Reboot or wait for BMC standby post reboot and
     ...  verify installed image is functional.
-    [Arguments]  ${apply_time}  ${start_boot_seconds}
+    [Arguments]  ${apply_time}  ${start_boot_seconds}  ${image_file_path}
 
     # Description of argument(s):
     # policy                ApplyTime allowed values
@@ -146,7 +146,7 @@ Reboot BMC And Verify BMC Image
     ...    Run Keyword
     ...        Wait For Reboot  start_boot_seconds=${start_boot_seconds}
     Redfish.Login
-    Redfish Verify BMC Version  ${IMAGE_FILE_PATH}
+    Redfish Verify BMC Version  ${image_file_path}
 
 
 Poweron Host And Verify Host Image
@@ -165,7 +165,7 @@ Get Host Power State
     # quiet    Indicates whether results should be printed.
 
     ${state}=  Redfish.Get Attribute
-    ...  ${REDFISH_BASE_URI}Systems/system  PowerState
+    ...  /redfish/v1/Systems/system  PowerState
     Rqprint Vars  state
 
     [Return]  ${state}

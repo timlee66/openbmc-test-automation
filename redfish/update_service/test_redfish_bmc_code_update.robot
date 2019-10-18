@@ -35,8 +35,7 @@ Redfish Code Update With ApplyTime OnReset
     [Template]  Redfish Update Firmware
 
     # policy
-    OnReset
-
+    OnReset  ${IMAGE0_FILE_PATH}
 
 Redfish Code Update With ApplyTime Immediate
     [Documentation]  Update the firmaware image with ApplyTime of Immediate.
@@ -44,8 +43,7 @@ Redfish Code Update With ApplyTime Immediate
     [Template]  Redfish Update Firmware
 
     # policy
-    Immediate
-
+    Immediate  ${IMAGE1_FILE_PATH}
 
 *** Keywords ***
 
@@ -53,7 +51,8 @@ Suite Setup Execution
     [Documentation]  Do the suite setup.
 
     # Checking for file existence.
-    Valid File Path  IMAGE_FILE_PATH
+    Valid File Path  IMAGE0_FILE_PATH
+    Valid File Path  IMAGE1_FILE_PATH
     Redfish.Login
     # Delete BMC dump and Error logs.
     Delete All BMC Dump
@@ -62,7 +61,7 @@ Suite Setup Execution
 
 Redfish Update Firmware
     [Documentation]  Update the BMC firmware via redfish interface.
-    [Arguments]  ${apply_time}
+    [Arguments]  ${apply_time}  ${image_file_path}
 
     # Description of argument(s):
     # policy     ApplyTime allowed values (e.g. "OnReset", "Immediate").
@@ -70,7 +69,10 @@ Redfish Update Firmware
     ${state}=  Get Pre Reboot State
     Rprint Vars  state
 
-    Redfish Upload Image And Check Progress State  ${apply_time}
+    # Redfish Upload Image And Check Progress State  ${apply_time}  ${image_file_path}
+    Set ApplyTime  policy=${apply_Time}
+    Redfish Upload Image  /redfish/v1/UpdateService  ${image_file_path}
+
     Reboot BMC And Verify BMC Image
-    ...  ${apply_time}  start_boot_seconds=${state['epoch_seconds']}
+    ...  ${apply_time}  start_boot_seconds=${state['epoch_seconds']}  image_file_path=${image_file_path}
 
