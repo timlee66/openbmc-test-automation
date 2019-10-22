@@ -2,12 +2,12 @@
 Documentation         Test upload image with invalid images.
 ...                   This test expects the following bad tarball image files
 ...                   to exist in the BAD_IMAGES_DIR_PATH/TFTP_SERVER:
-...                       bmc_bad_manifest.ubi.mtd.tar
-...                       bmc_nokernel_image.ubi.mtd.tar
-...                       bmc_invalid_key.ubi.mtd.tar
-...                       pnor_bad_manifest.pnor.squashfs.tar
-...                       pnor_nokernel_image.pnor.squashfs.tar
-...                       pnor_invalid_key.pnor.squashfs.tar
+...                       bmc_bad_manifest.static.mtd.tar
+...                       bmc_nokernel_image.static.mtd.tar
+...                       bmc_invalid_key.static.mtd.tar
+...                       bios_bad_manifest.bios.tar
+...                       bios_no_image.bios.tar
+...                       bios_invalid_key.bios.tar
 
 # Test Parameters:
 # OPENBMC_HOST         The BMC host name or IP address.
@@ -28,6 +28,7 @@ Library                ../../lib/gen_robot_valid.py
 Suite Setup            Suite Setup Execution
 Suite Teardown         Redfish.Logout
 Test Setup             Printn
+Test Teardown          FFDC On Test Case Fail
 
 Force Tags  Upload_Test
 
@@ -44,7 +45,7 @@ Redfish Failure to Upload BMC Image With Bad Manifest
     [Template]  Redfish Bad Firmware Update
 
     # Image File Name
-    bmc_bad_manifest.ubi.mtd.tar
+    bmc_bad_manifest.static.mtd.tar
 
 
 Redfish Failure to Upload Empty BMC Image
@@ -53,25 +54,25 @@ Redfish Failure to Upload Empty BMC Image
     [Template]  Redfish Bad Firmware Update
 
     # Image File Name
-    bmc_nokernel_image.ubi.mtd.tar
+    bmc_nokernel_image.static.mtd.tar
 
 
 Redfish Failure to Upload Host Image With Bad Manifest
-    [Documentation]  Upload a PNOR firmware with a bad MANIFEST file.
+    [Documentation]  Upload a BIOS firmware with a bad MANIFEST file.
     [Tags]  Redfish_Failure_To_Upload_Host_Image_With_Bad_Manifest
     [Template]  Redfish Bad Firmware Update
 
     # Image File Name
-    pnor_bad_manifest.pnor.squashfs.tar
+    bios_bad_manifest.bios.tar
 
 
 Redfish Failure to Upload Empty Host Image
-    [Documentation]  Upload a PNOR firmware with no kernel Image.
+    [Documentation]  Upload a BIOS firmware with no kernel Image.
     [Tags]  Redfish_Failure_To_Upload_Empty_Host_Image
     [Template]  Redfish Bad Firmware Update
 
     # Image File Name
-    pnor_nokernel_image.pnor.squashfs.tar
+    bios_no_image.bios.tar
 
 
 Redfish TFTP Failure to Upload BMC Image With Bad Manifest
@@ -80,7 +81,7 @@ Redfish TFTP Failure to Upload BMC Image With Bad Manifest
     [Template]  Redfish TFTP Bad Firmware Update
 
     # Image File Name
-    bmc_bad_manifest.ubi.mtd.tar
+    bmc_bad_manifest.static.mtd.tar
 
 
 Redfish TFTP Failure to Upload Empty BMC Image
@@ -89,26 +90,23 @@ Redfish TFTP Failure to Upload Empty BMC Image
     [Template]  Redfish TFTP Bad Firmware Update
 
     # Image File Name
-    bmc_nokernel_image.ubi.mtd.tar
-
+    bmc_nokernel_image.static.mtd.tar
 
 Redfish TFTP Failure to Upload Host Image With Bad Manifest
-    [Documentation]  Upload a PNOR firmware with a bad MANIFEST file via TFTP.
+    [Documentation]  Upload a BIOS firmware with a bad MANIFEST file via TFTP.
     [Tags]  Redfish_TFTP_Failure_To_Upload_Host_Image_With_Bad_Manifest
     [Template]  Redfish TFTP Bad Firmware Update
 
     # Image File Name
-    pnor_bad_manifest.pnor.squashfs.tar
-
+    bios_bad_manifest.bios.tar
 
 Redfish TFTP Failure to Upload Empty Host Image
-    [Documentation]  Upload a PNOR firmware with no kernel Image via TFTP.
+    [Documentation]  Upload a BIOS firmware with no kernel Image via TFTP.
     [Tags]  Redfish_TFTP_Failure_To_Upload_Empty_Host_Image
     [Template]  Redfish TFTP Bad Firmware Update
 
     # Image File Name
-    pnor_nokernel_image.pnor.squashfs.tar
-
+    bios_no_image.bios.tar
 
 *** Keywords ***
 
@@ -123,7 +121,6 @@ Suite Setup Execution
 Redfish Bad Firmware Update
     [Documentation]  Redfish firmware update.
     [Arguments]  ${image_file_name}
-    [Teardown]  Test Teardown Execution
 
     # Description of argument(s):
     # image_file_name  The file name of the image.
@@ -144,14 +141,16 @@ Redfish Bad Firmware Update
 
     ${image_id}=  Get Latest Image ID
     Rprint Vars  image_id
+
     Check Image Update Progress State
     ...  match_state='Updating', 'Disabled'  image_id=${image_id}
 
+    Delete Software Object
+    ...  /xyz/openbmc_project/software/${image_id}
 
 Redfish TFTP Bad Firmware Update
     [Documentation]  Redfish bad firmware update via TFTP.
     [Arguments]  ${image_file_name}
-    [Teardown]  Test Teardown Execution
 
     # Description of argument(s):
     # image_file_name  The file name of the image.
@@ -170,11 +169,5 @@ Redfish TFTP Bad Firmware Update
     Check Image Update Progress State
     ...  match_state='Updating', 'Disabled'  image_id=${image_id}
 
-
-Test Teardown Execution
-    [Documentation]  Do the post test teardown.
-
-    FFDC On Test Case Fail
-    Run Keyword If  '${image_id}'  Delete Software Object
+    Delete Software Object
     ...  /xyz/openbmc_project/software/${image_id}
-
