@@ -16,7 +16,6 @@ Resource                 ../../lib/openbmc_ffdc.robot
 Resource                 ../../lib/common_utils.robot
 Resource                 ../../lib/code_update_utils.robot
 Resource                 ../../lib/redfish_code_update_utils.robot
-Resource                 ../../extended/code_update/update_bmc.robot
 Library                  ../../lib/gen_robot_valid.py
 Library                  ../../lib/var_funcs.py
 
@@ -44,7 +43,7 @@ Redfish Fail Unsigned Code Update
     [Template]  Redfish Unsigned Firmware Update
 
     # image_file_path
-    ${IMAGE_FILE_PATH}
+    ${IMAGE_UNSIGNED_FILE_PATH}
 
 
 REST Failure When Field Mode Set To Disable
@@ -62,6 +61,7 @@ Suite Setup Execution
     [Documentation]  Do the suite setup.
 
     Valid File Path  IMAGE_FILE_PATH
+    Valid File Path  IMAGE_UNSIGNED_FILE_PATH
     Enable Field Mode And Verify Unmount
     Redfish.Login
     Delete All BMC Dump
@@ -79,10 +79,13 @@ Redfish Signed Firmware Update
     ${image_version}=  Get Version Tar  ${image_file_path}
     ${state}=  Get Pre Reboot State
     Rprint Vars  state
-    Redfish Upload Image And Check Progress State  Immediate
+    # Redfish Upload Image And Check Progress State  Immediate
+    Set ApplyTime  OnReset
+    Redfish Upload Image  /redfish/v1/UpdateService  ${image_file_path}
+
     ${image_info}=  Get Software Inventory State By Version  ${image_version}
     Run Keyword If  'BMC update' == '${image_info["image_type"]}'
-    ...    Reboot BMC And Verify BMC Image  Immediate  start_boot_seconds=${state['epoch_seconds']}
+    ...    Reboot BMC And Verify BMC Image  OnReset  start_boot_seconds=${state['epoch_seconds']}  image_file_path=${image_file_path}
     ...  ELSE
     ...    Poweron Host And Verify Host Image
 
@@ -96,7 +99,7 @@ Redfish Unsigned Firmware Update
 
     Field Mode Should Be Enabled
     Set ApplyTime  policy=Immediate
-    Redfish Upload Image  ${REDFISH_BASE_URI}UpdateService  ${image_file_path}
+    Redfish Upload Image  /redfish/v1/UpdateService  ${image_file_path}
     ${image_id}=  Get Latest Image ID
     Rprint Vars  image_id
     Sleep  5s
