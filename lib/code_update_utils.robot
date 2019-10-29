@@ -585,6 +585,28 @@ Get Firmware Image Version
     [Return]  ${version}
 
 
+Get ApplyTime
+    [Documentation]  Get the firmware "ApplyTime" policy.
+    [Arguments]  ${policy}
+
+    # Description of argument(s):
+    # policy     ApplyTime allowed values (e.g. "OnReset", "Immediate").
+
+    ${system_applytime}=  Redfish.Get Attribute  ${REDFISH_BASE_URI}UpdateService  HttpPushUriOptions
+    [Return]  ${system_applytime["HttpPushUriApplyTime"]["ApplyTime"]}
+
+
+Verify Get ApplyTime
+    [Documentation]  Get and verify the firmware "ApplyTime" policy.
+    [Arguments]  ${policy}
+
+    # Description of argument(s):
+    # policy     ApplyTime allowed values (e.g. "OnReset", "Immediate").
+
+    ${system_applytime}=  Get ApplyTime  ${policy}
+    Valid Value  system_applytime  ['${policy}']
+
+
 Set ApplyTime
     [Documentation]  Set and verify the firmware "ApplyTime" policy.
     [Arguments]  ${policy}

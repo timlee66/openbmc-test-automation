@@ -5,7 +5,7 @@
 # help text, etc.
 
 # Description of argument(s):
-# parm1            Bla, bla, bla (e.g. "example data").
+# parm1                             Bla, bla, bla (e.g. "example data").
 
 
 function get_parms {

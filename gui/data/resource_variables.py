@@ -18,6 +18,8 @@ class resource_variables():
     xpath_openbmc_ip = "//*[@id='login__form']/input[1]"
     xpath_power_indicator = "//*[@id='power-indicator-bar']"
     xpath_select_button_power_on = "//*[@id='power__power-on']"
+    xpath_cancel_button = "//button[contains(text(),'Cancel')]"
+    xpath_save_setting_button = "//button[contains(text(),'Save settings')]"
 
     xpath_select_button_warm_reboot = \
         "//*[@id='power__warm-boot']"
@@ -65,6 +67,14 @@ class resource_variables():
     obmc_standby_state = "Standby"
     obmc_running_state = "Running"
 
+    # xpath for main menu.
+    xpath_select_server_control = "//button[contains(@class,'btn-control')]"
+    xpath_select_server_configuration = "//button[contains(@class,'btn-config')]"
+
+    # xpath for sub main menu.
+    xpath_select_server_power_operations = "//a[@href='#/server-control/power-operations']"
+    xpath_select_snmp_settings = "//a[@href='#/configuration/snmp']"
+
     # Power operation elements needed for power on.
     header_wrapper = "3"
     header_wrapper_elt = "3"
@@ -88,20 +98,18 @@ class resource_variables():
         "//*[@id='header__wrapper']/div/div[3]/a[2]/span"
     xpath_select_refresh_button = \
         "//*[contains(text(),'Refresh')]"
-    xpath_event_severity_all = "//*[@id='event-filter']/div[1]/button[1]"
-    xpath_event_severity_high = "//*[@id='event-filter']/div[1]/button[2]"
-    xpath_event_severity_medium = "//*[@id='event-filter']/div[1]/button[3]"
-    xpath_event_severity_low = "//*[@id='event-filter']/div[1]/button[4]"
+    xpath_event_severity_all = "//*[text()='Filter by severity']/following-sibling::button[1]"
+    xpath_event_severity_high = "//*[text()='Filter by severity']/following-sibling::button[2]"
+    xpath_event_severity_medium = "//*[text()='Filter by severity']/following-sibling::button[3]"
+    xpath_event_severity_low = "//*[text()='Filter by severity']/following-sibling::button[4]"
     xpath_drop_down_timezone_edt = \
         "//*[@id='event-log']/section[1]/div/div/button"
     xpath_refresh_circle = "/html/body/main/loader/div[1]/svg/circle"
     xpath_drop_down_timezone_utc =  \
         "//*[@id='event-log']/section[1]/div/div/ul/li[2]/button"
-    xpath_event_filter_all = "//*[@id='event-filter']/div[3]/div/button"
-    xpath_event_filter_resolved =  \
-        "//*[@id='event-filter']/div[3]/div/ul/li[2]/button"
-    xpath_event_filter_unresolved = \
-        "//*[@id='event-filter']/div[3]/div/ul/li[3]/button"
+    xpath_event_filter_all = "//*[text()='All events']"
+    xpath_event_filter_resolved = "//*[text()='Resolved events']"
+    xpath_event_filter_unresolved = "//*[text()='Unresolved events']"
     xpath_event_action_bars = \
         "//*[@id='event__actions-bar']/div[1]/label/span"
     xpath_event_action_delete = \
@@ -117,15 +125,12 @@ class resource_variables():
         "//*[@id='event__actions-bar']/div[2]/div[1]/div[2]/button[2]"
     xpath_event_delete_yes = \
         "//*[@id='event__actions-bar']/div[2]/div[1]/div[2]/button[1]"
-    xpath_individual_event_select = \
-        "//*[@id='event-log__events']/log-event[1]/div/div[1]/div[2]/label/" +\
-        "span"
+    xpath_individual_event_select = "(//*[@class='control__indicator'])[2]"
     xpath_individual_event_delete = \
         "//*[@id='event__actions-bar']/div[2]/div[2]/button[1]"
-    xpath_second_event_select = \
-        "//*[@id='event-log__events']/log-event[2]/div/div[1]/div[2]/label/" +\
-        "span"
+    xpath_second_event_select = "(//*[@class='control__indicator'])[3]"
     xpath_individual_event_resolved = \
         "//*[@id='event__actions-bar']/div[2]/div[2]/button[2]"
     xpath_individual_event_export = \
         "//*[@id='event__actions-bar']/div[2]/div[2]/a"
+    xpath_select_all_events = "(//*[@class='control__indicator'])[1]"
