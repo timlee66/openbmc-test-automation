@@ -36,7 +36,7 @@ Redfish Code Update With ApplyTime OnReset
     [Template]  Redfish Update Firmware
 
     # policy
-    OnReset
+    OnReset  ${IMAGE_HOST_FILE_PATH_0}
 
 
 Redfish Code Update With ApplyTime Immediate
@@ -45,7 +45,7 @@ Redfish Code Update With ApplyTime Immediate
     [Template]  Redfish Update Firmware
 
     # policy
-    Immediate
+    Immediate  ${IMAGE_HOST_FILE_PATH_1}
 
 
 *** Keywords ***
@@ -53,7 +53,8 @@ Redfish Code Update With ApplyTime Immediate
 Suite Setup Execution
     [Documentation]  Do the suite setup.
 
-    Valid File Path  IMAGE_FILE_PATH
+    Valid File Path  IMAGE_HOST_FILE_PATH_0
+    Valid File Path  IMAGE_HOST_FILE_PATH_1
     Redfish.Login
     Delete All BMC Dump
     Redfish Purge Event Log
@@ -62,12 +63,17 @@ Suite Setup Execution
 
 Redfish Update Firmware
     [Documentation]  Update the BMC firmware via redfish interface.
-    [Arguments]  ${apply_time}
+    [Arguments]  ${apply_time}  ${image_file_path}
 
     # Description of argument(s):
     # policy     ApplyTime allowed values (e.g. "OnReset", "Immediate").
 
     Redfish.Login
-    Redfish Upload Image And Check Progress State  ${apply_time}
-    Poweron Host And Verify Host Image  ${apply_time}
+    # Redfish Upload Image And Check Progress State  ${apply_time}
+    # Poweron Host And Verify Host Image  ${apply_time}
+    Redfish Upload Image  /redfish/v1/UpdateService  ${image_file_path}
+    Sleep  5 mins
 
+    Wait State  os_running_match_state  15 mins
+    Redfish.Login
+    Redfish Verify Host Version  ${image_file_path}
