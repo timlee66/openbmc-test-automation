@@ -5,7 +5,7 @@ Documentation    This suite tests Redfish Host power operations.
 Resource         ../../lib/common_utils.robot
 #Resource         ../../lib/open_power_utils.robot
 
-#Test Setup       Test Setup Execution
+Test Setup       Test Setup Execution
 Test Teardown    Test Teardown Execution
 
 *** Test Cases ***
