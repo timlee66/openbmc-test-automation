@@ -3,7 +3,7 @@ Documentation    Firmware image (BMC and Host) upload test using TFTP protocol.
 
 # Test Parameters:
 # TFTP_SERVER        The TFTP server host name or IP address.
-# IMAGE_FILE_NAME    The BMC or Host image file name.
+# IMAGE_FILE_PATH    The BMC or Host image file name.
 #
 # Firmware update states:
 #     Enabled  -> Image is installed and either functional or active.
@@ -34,7 +34,7 @@ TFTP Download Install With ApplyTime OnReset Policy
     [Template]  TFTP Download Install
 
     # policy
-    OnReset  ${IMAGE_FILE_NAME0}
+    OnReset  ${IMAGE0_FILE_PATH}
 
 TFTP Download Install With ApplyTime Immediate Policy
     [Documentation]  Download image to BMC using TFTP with Immediate policy and verify installation.
@@ -42,7 +42,7 @@ TFTP Download Install With ApplyTime Immediate Policy
     [Template]  TFTP Download Install
 
     # policy
-    Immediate  ${IMAGE_FILE_NAME1}
+    Immediate  ${IMAGE1_FILE_PATH}
 
 
 ImageURI Download Install With ApplyTime OnReset Policy
@@ -51,7 +51,7 @@ ImageURI Download Install With ApplyTime OnReset Policy
     [Template]  ImageURI Download Install
 
     # policy
-    OnReset  ${IMAGE_FILE_NAME0}
+    OnReset  ${IMAGE0_FILE_PATH}
 
 ImageURI Download Install With ApplyTime Immediate Policy
     [Documentation]  Download image to BMC using ImageURI with Immediate policy and verify installation.
@@ -59,7 +59,7 @@ ImageURI Download Install With ApplyTime Immediate Policy
     [Template]  ImageURI Download Install
 
     # policy
-    Immediate  ${IMAGE_FILE_NAME1}
+    Immediate  ${IMAGE1_FILE_PATH}
 
 *** Keywords ***
 
@@ -68,8 +68,8 @@ Suite Setup Execution
 
     Redfish.Login
     Valid Value  TFTP_SERVER
-    Valid Value  IMAGE_FILE_NAME0
-    Valid Value  IMAGE_FILE_NAME1
+    Valid Value  IMAGE0_FILE_PATH
+    Valid Value  IMAGE1_FILE_PATH
 
 
 TFTP Download Install
