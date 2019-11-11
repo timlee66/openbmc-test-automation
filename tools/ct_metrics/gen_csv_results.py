@@ -13,7 +13,7 @@ import csv
 import robot.errors
 import re
 import stat
-from datetime import datetime
+import datetime
 from robot.api import ExecutionResult
 from robot.result.visitor import ResultVisitor
 from xml.etree import ElementTree
@@ -79,6 +79,12 @@ parser.add_argument(
     help='Name of testing phase, e.g. "DVT", "SVT", etc.\
           This parameter is optional.',
     default="FVT")
+
+parser.add_argument(
+    '--subsystem',
+    help='Name of the subsystem, e.g. "OPENBMC" etc.\
+          This parameter is optional.',
+    default="OPENBMC")
 
 parser.add_argument(
     '--processor',
@@ -188,7 +194,6 @@ def parse_output_xml(xml_file_path, csv_dir_path, version_id, platform, level,
     l_csvlist = []
 
     # Default Test data
-    l_subsys = 'OPENBMC'
     l_test_type = test_phase
 
     l_pse_rel = 'Master'
@@ -235,7 +240,7 @@ def parse_output_xml(xml_file_path, csv_dir_path, version_id, platform, level,
 
     # Generate CSV file onto the path with current time stamp
     l_base_dir = csv_dir_path
-    l_timestamp = datetime.utcnow().strftime("%Y-%m-%d-%H-%M-%S")
+    l_timestamp = datetime.datetime.utcnow().strftime("%Y-%m-%d-%H-%M-%S")
     # Example: 2017-02-20-08-47-22_Witherspoon.csv
     l_csvfile = l_base_dir + l_timestamp + "_" + l_platform_type + ".csv"
 
@@ -259,7 +264,7 @@ def parse_output_xml(xml_file_path, csv_dir_path, version_id, platform, level,
         # Data Sequence: test_start,test_end,subsys,test_type,
         #                test_result,test_name,pse_rel,driver,
         #                env,proc,platform_type,test_func_area,
-        l_data = [l_stime, l_etime, l_subsys, l_test_type, l_test_result,
+        l_data = [l_stime, l_etime, subsystem, l_test_type, l_test_result,
                   l_test_name, l_pse_rel, l_driver, l_env, l_proc,
                   l_platform_type, l_func_area]
         l_csvlist.append(l_data)
@@ -288,7 +293,7 @@ def xml_to_csv_time(xml_datetime):
     """
 
     # 20170206 05:05:19.342
-    l_str = datetime.strptime(xml_datetime, "%Y%m%d %H:%M:%S.%f")
+    l_str = datetime.datetime.strptime(xml_datetime, "%Y%m%d %H:%M:%S.%f")
     # 2017-02-06-05-05-19
     l_str = l_str.strftime("%Y-%m-%d-%H-%M-%S")
     return str(l_str)

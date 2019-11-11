@@ -14,8 +14,6 @@ class resource_variables():
     xpath_button_login = "//*[@id='login__submit']"
     xpath_button_logout = '//a[contains(text(), "Log out")]'
     xpath_yes_button = "//button[text()='Yes']"
-    xpath_openbmc_url = "http://localhost:8080/#/login"
-    xpath_openbmc_ip = "//*[@id='login__form']/input[1]"
     xpath_power_indicator = "//*[@id='power-indicator-bar']"
     xpath_select_button_power_on = "//*[@id='power__power-on']"
     xpath_cancel_button = "//button[contains(text(),'Cancel')]"
@@ -25,9 +23,6 @@ class resource_variables():
         "//*[@id='power__warm-boot']"
     xpath_operation_warning_message = \
         "//*[@class='inline__confirm active']"
-    xpath_select_button_warm_reboot_no = \
-        "//*[@id='power-operations']/div[3]" \
-        "/div[3]/confirm/div/div[2]/button[2]"
     text_warm_reboot_warning_message = "warm reboot?"
     xpath_select_button_warm_reboot_yes = \
         "//*[@id='power-operations']" \
@@ -35,9 +30,6 @@ class resource_variables():
 
     xpath_select_button_cold_reboot = \
         "//*[@id='power__cold-boot']"
-    xpath_select_button_cold_reboot_no = \
-        "//*[@id='power-operations']/div[3]/div[4]" \
-        "/confirm/div/div[2]/button[2]"
     text_cold_reboot_warning_message = "cold reboot?"
     xpath_select_button_cold_reboot_yes = \
         "//*[@id='power-operations']" \
@@ -55,9 +47,6 @@ class resource_variables():
 
     xpath_select_button_immediate_shutdown = \
         "//*[@id='power__hard-shutdown']"
-    xpath_select_button_immediate_shutdown_no = \
-        "//*[@id='power-operations']/div[3]/div[6]" \
-        "/confirm/div/div[2]/button[2]"
     text_immediate_shutdown_warning_message = "immediate shutdown?"
     xpath_select_button_immediate_shutdown_yes = \
         "//*[@id='power-operations']/div[3]/div[6]" \
@@ -70,32 +59,24 @@ class resource_variables():
     # xpath for main menu.
     xpath_select_server_control = "//button[contains(@class,'btn-control')]"
     xpath_select_server_configuration = "//button[contains(@class,'btn-config')]"
+    xpath_select_access_control = "//button[contains(@class,'btn-access-control')]"
 
     # xpath for sub main menu.
     xpath_select_server_power_operations = "//a[@href='#/server-control/power-operations']"
     xpath_select_snmp_settings = "//a[@href='#/configuration/snmp']"
-
-    # Power operation elements needed for power on.
-    header_wrapper = "3"
-    header_wrapper_elt = "3"
-
-    # Power operation elements needed for power operations confirmation.
-    power_operations = "3"
-    warm_boot = "3"
-    cold_boot = "4"
-    shut_down = "5"
-    power_off = "6"
-    confirm_msg = "2"
-    yes = "1"
-    No = "2"
+    xpath_select_manage_power_usage = "//a[@href='#/server-control/power-usage']"
+    xpath_select_virtual_media = "//a[@href='#/server-control/virtual-media']"
+    xpath_select_sol_console = "//a[@href='#/server-control/remote-console']"
+    xpath_select_reboot_bmc = "//a[@href='#/server-control/bmc-reboot']"
+    xpath_select_ldap = "//a[@href='#/access-control/ldap']"
+    xpath_select_server_health = "//a[@href='#/server-health/event-log']"
+    xpath_select_server_led = "//a[@href='#/server-control/server-led']"
+    xpath_select_date_time_settings = "//a[@href='#/configuration/date-time']"
 
     # GUI header elements locators.
     xpath_select_server_power = "//a[@href='#/server-control/power-operations']"
 
     # Server health elements locators.
-    xpath_select_server_health = "//a[@href='#/server-health/event-log']"
-    xpath_server_health_text =  \
-        "//*[@id='header__wrapper']/div/div[3]/a[2]/span"
     xpath_select_refresh_button = \
         "//*[contains(text(),'Refresh')]"
     xpath_event_severity_all = "//*[text()='Filter by severity']/following-sibling::button[1]"
@@ -121,10 +102,6 @@ class resource_variables():
     xpath_mark_as_resolved = \
         "//*[@id='event__actions-bar']/div[2]/div[2]/button[2]"
     xpath_events_export = "//*[@id='event__actions-bar']/div[2]/div[2]/a"
-    xpath_event_delete_no = \
-        "//*[@id='event__actions-bar']/div[2]/div[1]/div[2]/button[2]"
-    xpath_event_delete_yes = \
-        "//*[@id='event__actions-bar']/div[2]/div[1]/div[2]/button[1]"
     xpath_individual_event_select = "(//*[@class='control__indicator'])[2]"
     xpath_individual_event_delete = \
         "//*[@id='event__actions-bar']/div[2]/div[2]/button[1]"

@@ -82,7 +82,6 @@ Redfish Signed Firmware Update
     # Redfish Upload Image And Check Progress State  Immediate
     Set ApplyTime  OnReset
     Redfish Upload Image  /redfish/v1/UpdateService  ${image_file_path}
-
     ${image_info}=  Get Software Inventory State By Version  ${image_version}
     Run Keyword If  'BMC update' == '${image_info["image_type"]}'
     ...    Reboot BMC And Verify BMC Image  OnReset  start_boot_seconds=${state['epoch_seconds']}  image_file_path=${image_file_path}

@@ -118,7 +118,6 @@ Redfish Upload Image And Check Progress State
 
     Check Image Update Progress State
     ...  match_state='Disabled', 'Updating'  image_id=${image_id}
-
     # Wait a few seconds to check if the update progress started.
     Sleep  5s
     Check Image Update Progress State

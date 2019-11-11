@@ -48,6 +48,16 @@ Redfish Code Update With ApplyTime Immediate
     Immediate  ${IMAGE_HOST_FILE_PATH_1}
 
 
+BMC Reboot When PNOR Update Goes On
+    [Documentation]  Trigger PNOR update and do BMC reboot.
+    [Tags]  BMC_Reboot_When_PNOR_Update_Goes_On
+
+    ${bios_version_before}=  Redfish.Get Attribute  /redfish/v1/Systems/system/  BiosVersion
+    Redfish Firmware Update And Do BMC Reboot
+    ${bios_version_after}=  Redfish.Get Attribute  /redfish/v1/Systems/system/  BiosVersion
+    Valid Value  bios_version_after  ['${bios_version_before}']
+
+
 *** Keywords ***
 
 Suite Setup Execution
@@ -69,6 +79,7 @@ Redfish Update Firmware
     # policy     ApplyTime allowed values (e.g. "OnReset", "Immediate").
 
     Redfish.Login
+
     # Redfish Upload Image And Check Progress State  ${apply_time}
     # Poweron Host And Verify Host Image  ${apply_time}
     Redfish Upload Image  /redfish/v1/UpdateService  ${image_file_path}
@@ -77,3 +88,16 @@ Redfish Update Firmware
     Wait State  os_running_match_state  15 mins
     Redfish.Login
     Redfish Verify Host Version  ${image_file_path}
+
+Redfish Firmware Update And Do BMC Reboot
+    [Documentation]  Update the firmware via redfish interface and do BMC reboot.
+
+    Set ApplyTime  policy="Immediate"
+    Redfish Upload Image  ${REDFISH_BASE_URI}UpdateService  ${IMAGE_FILE_PATH}
+    ${image_id}=  Get Latest Image ID
+    Wait Until Keyword Succeeds  1 min  10 sec
+    ...  Check Image Update Progress State  match_state='Updating'  image_id=${image_id}
+
+    # BMC reboot while PNOR update is in progress.
+    Redfish OBMC Reboot (off)
+
