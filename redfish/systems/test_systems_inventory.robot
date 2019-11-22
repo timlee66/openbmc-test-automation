@@ -14,9 +14,9 @@ Test Teardown       Test Teardown Execution
 *** Variables ***
 
 # The passing criteria.  Must have at least this many.
-${min_num_dimms}   2
-${min_num_cpus}    1
-${min_num_cores}   18
+${min_num_dimms}   1
+${min_num_cpus}    2
+${min_num_cores}   12
 ${min_num_power_supplies}  1
 
 
