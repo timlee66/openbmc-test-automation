@@ -587,13 +587,14 @@ Get Firmware Image Version
 
 Get ApplyTime
     [Documentation]  Get the firmware "ApplyTime" policy.
-    [Arguments]  ${policy}
+    [Arguments]
 
     # Description of argument(s):
     # policy     ApplyTime allowed values (e.g. "OnReset", "Immediate").
-
-    ${system_applytime}=  Redfish.Get Attribute  ${REDFISH_BASE_URI}UpdateService  HttpPushUriOptions
-    [Return]  ${system_applytime["HttpPushUriApplyTime"]["ApplyTime"]}
+    ${apply_time}=  Read Attribute   ${SOFTWARE_VERSION_URI}apply_time  RequestedApplyTime
+    [Return]  ${apply_time}
+    #${system_applytime}=  Redfish.Get Attribute  ${REDFISH_BASE_URI}UpdateService  HttpPushUriOptions
+    #[Return]  ${system_applytime["HttpPushUriApplyTime"]["ApplyTime"]}
 
 
 Verify Get ApplyTime
@@ -603,8 +604,9 @@ Verify Get ApplyTime
     # Description of argument(s):
     # policy     ApplyTime allowed values (e.g. "OnReset", "Immediate").
 
-    ${system_applytime}=  Get ApplyTime  ${policy}
-    Valid Value  system_applytime  ['${policy}']
+    ${system_applytime}=  Get ApplyTime
+    Valid Value  system_applytime  valid_values=["xyz.openbmc_project.Software.ApplyTime.RequestedApplyTimes.${policy}"]
+   # Valid Value  system_applytime  ['${policy}']
 
 
 Set ApplyTime
