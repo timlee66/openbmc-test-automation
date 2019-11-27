@@ -16,6 +16,7 @@ Test Teardown       Test Teardown Execution
 ** Variables ***
 
 ${max_num_event_logs}  ${200}
+${default_cert}        ${EXECDIR}/data/server.pem
 
 *** Test Cases ***
 
@@ -404,6 +405,8 @@ Suite Setup Execution
     ${status}=  Run Keyword And Return Status  Logging Test Binary Exist
     Run Keyword If  ${status} == ${False}  Install Tarball
 
+    Install Debug Certificate On BMC
+
 
 Suite Teardown Execution
     [Documentation]  Do the post suite teardown.
@@ -465,3 +468,15 @@ Verify Watchdog EventLog Content
     Should Be Equal As Strings
     ...  ${elog[0]["Severity"]}  Critical
     ...  msg=Watchdog timeout severity unexpected value.
+
+Install Debug Certificate On BMC
+    [Documentation]  Copy the debug certificate file to BMC and install.
+    [Arguments]  ${cert_file_path}=${default_cert}
+    ...  ${targ_cert_dir_path}=/etc/ssl/certs/https
+
+    OperatingSystem.File Should Exist  ${cert_file_path}
+    ...  msg=${cert_file_path} doesn't exist.
+    # Upload the file to BMC.
+    Import Library  SCPLibrary  WITH NAME  scp
+    Open Connection for SCP
+    scp.Put File  ${cert_file_path}  ${targ_cert_dir_path}/server.pem
