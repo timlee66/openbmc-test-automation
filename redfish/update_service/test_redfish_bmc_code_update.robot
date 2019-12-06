@@ -28,7 +28,6 @@ Test Teardown            FFDC On Test Case Fail
 Force Tags               BMC_Code_Update
 
 *** Test Cases ***
-
 Redfish Code Update With ApplyTime OnReset
     [Documentation]  Update the firmaware image with ApplyTime of OnReset.
     [Tags]  Redfish_Code_Update_With_ApplyTime_OnReset
@@ -46,12 +45,12 @@ Redfish Code Update With ApplyTime Immediate
     Immediate  ${IMAGE1_FILE_PATH}
 
 Redfish Code Update With Multiple Firmware
-    [Documentation]  Update the firmaware image with ApplyTime of Immediate.
+    [Documentation]  Update the firmaware image with ApplyTime of OnReset.
     [Tags]  Redfish_Code_Update_With_Multiple_Firmware
     [Template]  Redfish Multiple Upload Image And Check Progress State
 
     # policy   image_file_path     alternate_image_file_path
-    Immediate  ${IMAGE_FILE_PATH}  ${ALTERNATE_IMAGE_FILE_PATH}
+    OnReset  ${IMAGE0_FILE_PATH}  ${IMAGE1_FILE_PATH}
 
 
 *** Keywords ***
@@ -100,23 +99,39 @@ Redfish Multiple Upload Image And Check Progress State
     Rprint Vars  state
 
     Set ApplyTime  policy=${apply_time}
-    Redfish Upload Image  ${REDFISH_BASE_URI}UpdateService  ${IMAGE_FILE_PATH}
 
-    ${first_image_id}=  Get Latest Image ID
+    ${image_version}=  Get Version Tar  ${IMAGE_FILE_PATH}
+    Rprint Vars  image_version
+    Redfish Upload Image  ${REDFISH_BASE_URI}UpdateService  ${IMAGE_FILE_PATH}
+    Sleep  30s
+    ${image_info}=  Get Software Inventory State By Version  ${image_version}
+    ${first_image_id}=  Get Image Id By Image Info  ${image_info}
     Rprint Vars  first_image_id
     Sleep  5s
-    Redfish Upload Image  ${REDFISH_BASE_URI}UpdateService  ${ALTERNATE_IMAGE_FILE_PATH}
 
-    ${second_image_id}=  Get Latest Image ID
+    ${image_version}=  Get Version Tar  ${ALTERNATE_IMAGE_FILE_PATH}
+    Rprint Vars  image_version
+    Redfish Upload Image  ${REDFISH_BASE_URI}UpdateService  ${ALTERNATE_IMAGE_FILE_PATH}
+    Sleep  30s
+    ${image_info}=  Get Software Inventory State By Version  ${image_version}
+    ${second_image_id}=  Get Image Id By Image Info  ${image_info}
     Rprint Vars  second_image_id
 
-    Check Image Update Progress State
-    ...  match_state='Updating', 'Disabled'  image_id=${second_image_id}
+    #Check Image Update Progress State
+    #...  match_state='Updating', 'Disabled'  image_id=${first_image_id}
 
-    Check Image Update Progress State
-    ...  match_state='Updating'  image_id=${first_image_id}
+    #Check Image Update Progress State
+    #...  match_state='Updating'  image_id=${second_image_id}
 
     Wait Until Keyword Succeeds  8 min  20 sec
     ...  Check Image Update Progress State
-    ...    match_state='Enabled'  image_id=${first_image_id}
-    Reboot BMC And Verify BMC Image  ${apply_time}  start_boot_seconds=${state['epoch_seconds']}
+    ...    match_state='Enabled'  image_id=${second_image_id}
+
+    Reboot BMC And Verify BMC Image
+    ...  ${apply_time}  start_boot_seconds=${state['epoch_seconds']}  image_file_path=${ALTERNATE_IMAGE_FILE_PATH}
+
+Get Image Id By Image Info
+    [Documentation]  Get image ID from image_info.
+    [Arguments]  ${image_info}
+
+    [Return]  ${image_info["image_id"]}
