@@ -170,14 +170,14 @@ ImageURI Download Install
 
 Same Firmware Install Two Times
     [Documentation]  Download same image twice to BMC via ImageURI. Second attempt would fail.
-    [Arguments]  ${apply_time}  ${tftp_server}=${TFTP_SERVER}  ${image_file_name}=${IMAGE_FILE_NAME}
+    [Arguments]  ${apply_time}  ${tftp_server}=${TFTP_SERVER}  ${image_file_name}=${IMAGE_FILE_PATH}
 
     # Description of argument(s):
     # apply_time       ApplyTime allowed values (e.g. "OnReset", "Immediate").
     # tftp_server      Server IP.
     # image_file_name  Image file name.
 
-    ImageURI Download Install  ${apply_time}
+    ImageURI Download Install  ${apply_time}  ${image_file_name}
 
     # Download image from TFTP server via ImageURI to BMC.
     Redfish.Post  /redfish/v1/UpdateService/Actions/UpdateService.SimpleUpdate
