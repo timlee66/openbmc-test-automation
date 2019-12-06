@@ -10,8 +10,10 @@ import re
 import collections
 
 import gen_print as gp
+import gen_valid as gv
 import gen_misc as gm
 import gen_cmd as gc
+import func_args as fa
 
 PLUG_VAR_PREFIX = os.environ.get("PLUG_VAR_PREFIX", "AUTOBOOT")
 
@@ -35,7 +37,8 @@ def get_plug_in_package_name(case=None):
 
 
 def return_plug_vars(general=True,
-                     custom=True):
+                     custom=True,
+                     plug_in_package_name=None):
     r"""
     Return an OrderedDict which is sorted by key and which contains all of the plug-in environment variables.
 
@@ -72,16 +75,18 @@ def return_plug_vars(general=True,
                                     "AUTOGUI").
     custom                          Return custom plug-in parms (i.e. those beginning with the upper case
                                     name of the plug-in package, for example "OBMC_SAMPLE_PARM1").
+    plug_in_package_name            The name of the plug-in package for which custom parms are to be
+                                    returned.  The default is the current plug in package name.
     """
 
     regex_list = []
     if not (general or custom):
         return collections.OrderedDict()
-    plug_in_package_name = get_plug_in_package_name(case="upper")
+    plug_in_package_name = gm.dft(plug_in_package_name, get_plug_in_package_name())
     if general:
         regex_list = [PLUG_VAR_PREFIX, "AUTOGUI"]
     if custom:
-        regex_list.append(plug_in_package_name)
+        regex_list.append(plug_in_package_name.upper())
 
     regex = "^(" + "|".join(regex_list) + ")_"
 
@@ -96,7 +101,8 @@ def return_plug_vars(general=True,
 
     # For all variables specified in the parm_def file, we want them to default to "" rather than being unset.
     # Process the parm_def file if it exists.
-    parm_def_file_path = gp.pgm_dir_path + "parm_def"
+    parm_def_file_path = os.path.dirname(gp.pgm_dir_path.rstrip("/")) + "/" + plug_in_package_name \
+        + "/parm_def"
     if os.path.exists(parm_def_file_path):
         parm_defs = gm.my_parm_file(parm_def_file_path)
     else:
@@ -109,7 +115,7 @@ def return_plug_vars(general=True,
 
     # Create a list of plug-in environment variables by pre-pending <all caps plug-in package name>_<all
     # caps var name>
-    plug_in_parm_names = [plug_in_package_name + "_" + x for x in
+    plug_in_parm_names = [plug_in_package_name.upper() + "_" + x for x in
                           map(str.upper, parm_defs.keys())]
     # Example plug_in_parm_names:
     # plug_in_parm_names:
@@ -198,7 +204,7 @@ def print_plug_in_header():
         qprint_plug_vars(headers=0, general=False, custom=True)
 
 
-def get_plug_vars(mod_name="__main__"):
+def get_plug_vars(mod_name="__main__", **kwargs):
     r"""
     Get all plug-in variables and put them in corresponding global variables.
 
@@ -212,10 +218,12 @@ def get_plug_vars(mod_name="__main__"):
 
     Description of argument(s):
     mod_name                        The name of the module whose global plug-in variables should be retrieved.
+    kwargs                          These are passed directly to return_plug_vars.  See return_plug_vars's
+                                    prolog for details.
     """
 
     module = sys.modules[mod_name]
-    plug_var_dict = return_plug_vars()
+    plug_var_dict = return_plug_vars(**kwargs)
 
     # Get all PLUG_VAR_PREFIX environment variables and put them into globals.
     for key, value in plug_var_dict.items():
@@ -297,66 +305,42 @@ def get_plug_default(var_name,
     return default
 
 
-def srequired_plug_in(req_plug_in_names,
-                      plug_in_dir_paths=None):
+def required_plug_in(required_plug_in_names,
+                     plug_in_dir_paths=None):
     r"""
-    Return an empty string if the required plug-ins are found in plug_in_dir_paths.  Otherwise, return an
-    error string.
+    Determine whether the required_plug_in_names are in plug_in_dir_paths, construct an error_message and
+    call gv.process_error_message(error_message).
+
+    In addition, for each plug-in in required_plug_in_names, set the global plug-in variables.  This is
+    useful for callers who then want to validate certain values from other plug-ins.
 
     Example call:
-    error_message = srequired_plug_in(req_plug_in_names, plug_in_dir_paths)
+    required_plug_in(required_plug_in_names)
 
     Description of argument(s):
-    req_plug_in_names               A list of plug_in names that the caller requires (e.g. ['OS_Console']).
+    required_plug_in_names          A list of plug_in names that the caller requires (e.g. ['OS_Console']).
     plug_in_dir_paths               A string which is a colon-delimited list of plug-ins specified by the
                                     user (e.g. DB_Logging:FFDC:OS_Console:Perf).  Path values (e.g.
                                     "/home/robot/dir1") will be stripped from this list to do the analysis.
-                                    Default value is the <PLUG_VAR_PREFIX>_PLUG_IN_DIR_PATHS environment
-                                    variable.
+                                    Default value is the AUTOGUI_PLUG_IN_DIR_PATHS or
+                                    <PLUG_VAR_PREFIX>_PLUG_IN_DIR_PATHS environment variable.
     """
 
     # Calculate default value for plug_in_dir_paths.
-    if plug_in_dir_paths is None:
-        plug_in_dir_paths = os.environ.get(PLUG_VAR_PREFIX
-                                           + "_PLUG_IN_DIR_PATHS", "")
-
-    error_message = ""
+    plug_in_dir_paths = gm.dft(plug_in_dir_paths,
+                               os.environ.get('AUTOGUI_PLUG_IN_DIR_PATHS',
+                                              os.environ.get(PLUG_VAR_PREFIX + "_PLUG_IN_DIR_PATHS", "")))
 
     # Convert plug_in_dir_paths to a list of base names.
     plug_in_dir_paths = \
         list(filter(None, map(os.path.basename, plug_in_dir_paths.split(":"))))
 
-    # Check for each of the user's required plug-ins.
-    for plug_in_name in req_plug_in_names:
-        if plug_in_name not in plug_in_dir_paths:
-            error_message = "The \"" + get_plug_in_package_name() +\
-                "\" plug-in cannot run unless the user also selects the \"" +\
-                plug_in_name + "\" plug in:\n" +\
-                gp.sprint_var(plug_in_dir_paths)
+    error_message = gv.valid_list(plug_in_dir_paths, required_values=required_plug_in_names)
+    if error_message:
+        return gv.process_error_message(error_message)
 
-    return error_message
-
-
-def required_plug_in(req_plug_in_names,
-                     plug_in_dir_paths=None):
-    r"""
-    Return True if each of the plug-ins in req_plug_in_names can be found in plug_in_dir_paths  Otherwise,
-    return False and print an error message to stderr.
-
-    Example call:
-    if not required_plug_in(['OS_Console'], AUTOBOOT_PLUG_IN_DIR_PATHS):
-        return False
-
-    Description of argument(s):
-    (See Description of arguments for srequired_plug_in (above)).
-    """
-
-    error_message = srequired_plug_in(req_plug_in_names, plug_in_dir_paths)
-    if not error_message == "":
-        gp.print_error_report(error_message)
-        return False
-
-    return True
+    for plug_in_package_name in required_plug_in_names:
+        get_plug_vars(general=False, plug_in_package_name=plug_in_package_name)
 
 
 def compose_plug_in_save_dir_path(plug_in_package_name=None):
@@ -383,8 +367,7 @@ def compose_plug_in_save_dir_path(plug_in_package_name=None):
     if NICKNAME == "":
         NICKNAME = os.environ["AUTOIPL_FSP1_NICKNAME"]
     MASTER_PID = os.environ[PLUG_VAR_PREFIX + "_MASTER_PID"]
-    gp.qprint_vars(BASE_TOOL_DIR_PATH, NICKNAME, plug_in_package_name,
-                   MASTER_PID)
+    gp.dprint_vars(BASE_TOOL_DIR_PATH, NICKNAME, plug_in_package_name, MASTER_PID)
     return BASE_TOOL_DIR_PATH + gm.username() + "/" + NICKNAME + "/" +\
         plug_in_package_name + "/" + str(MASTER_PID) + "/"
 
@@ -418,74 +401,109 @@ def delete_plug_in_save_dir(plug_in_package_name=None):
                  + compose_plug_in_save_dir_path(plug_in_package_name))
 
 
-def save_plug_in_value(value, plug_in_package_name=None):
+def save_plug_in_value(var_value=None, plug_in_package_name=None, **kwargs):
     r"""
     Save a value in a plug-in save file.  The value may be retrieved later via a call to the
     restore_plug_in_value function.
 
-    This function will figure out the variable name of the value passed and use that name in creating the
-    plug-in save file.
+    This function will figure out the variable name corresponding to the value passed and use that name in
+    creating the plug-in save file.
 
-    Example call:
+    The caller may pass the value as a simple variable or as a keyword=value (see examples below).
+
+    Example 1:
 
     my_var1 = 5
     save_plug_in_value(my_var1)
 
     In this example, the value "5" would be saved to the "my_var1" file in the plug-in save directory.
 
+    Example 2:
+
+    save_plug_in_value(my_var1=5)
+
+    In this example, the value "5" would be saved to the "my_var1" file in the plug-in save directory.
+
     Description of argument(s):
-    value                           The value to be saved.
+    var_value                       The value to be saved.
     plug_in_package_name            See compose_plug_in_save_dir_path for details.
+    kwargs                          The first entry may contain a var_name/var_value.  Other entries are
+                                    ignored.
     """
 
-    # Get the name of the variable used as argument one to this function.
-    var_name = gp.get_arg_name(0, 1, stack_frame_ix=2)
+    if var_value is None:
+        var_name = next(iter(kwargs))
+        var_value = kwargs[var_name]
+    else:
+        # Get the name of the variable used as argument one to this function.
+        var_name = gp.get_arg_name(0, 1, stack_frame_ix=2)
     plug_in_save_dir_path = create_plug_in_save_dir(plug_in_package_name)
     save_file_path = plug_in_save_dir_path + var_name
     gp.qprint_timen("Saving \"" + var_name + "\" value.")
-    gc.shell_cmd("echo '" + str(value) + "' > " + save_file_path)
+    gp.qprint_varx(var_name, var_value)
+    gc.shell_cmd("echo '" + str(var_value) + "' > " + save_file_path)
 
 
-def restore_plug_in_value(default="", plug_in_package_name=None):
+def restore_plug_in_value(*args, **kwargs):
     r"""
     Return a value from a plug-in save file.
 
-    The name of the value to be restored will be determined by this function based on the lvalue being
-    assigned.  Consider the following example:
+    The args/kwargs are interpreted differently depending on how this function is called.
+
+    Mode 1 - The output of this function is assigned to a variable:
+
+    Example:
 
     my_var1 = restore_plug_in_value(2)
 
-    In this example, this function would look for the "my_var1" file in the plug-in save directory, read its
-    value and return it.  If no such file exists, the default value of 2 would be returned.
+    In this mode, the lvalue ("my_var1" in this example) will serve as the name of the value to be restored.
+
+    Mode 2 - The output of this function is NOT assigned to a variable:
+
+    Example:
+
+    if restore_plug_in_value('my_var1', 2):
+        do_something()
+
+    In this mode, the caller must explicitly provide the name of the value being restored.
+
+    The args/kwargs are interpreted as follows:
 
     Description of argument(s):
+    var_name                        The name of the value to be restored. Only relevant in mode 1 (see
+                                    example above).
     default                         The default value to be returned if there is no plug-in save file for the
                                     value in question.
     plug_in_package_name            See compose_plug_in_save_dir_path for details.
     """
-
-    # Get the lvalue from the caller's invocation of this function.
+    # Process args.
     lvalue = gp.get_arg_name(0, -1, stack_frame_ix=2)
+    if lvalue:
+        var_name = lvalue
+    else:
+        var_name, args, kwargs = fa.pop_arg("", *args, **kwargs)
+    default, args, kwargs = fa.pop_arg("", *args, **kwargs)
+    plug_in_package_name, args, kwargs = fa.pop_arg(None, *args, **kwargs)
+    if args or kwargs:
+        error_message = "Programmer error - Too many arguments passed for this function."
+        raise ValueError(error_message)
     plug_in_save_dir_path = create_plug_in_save_dir(plug_in_package_name)
-    save_file_path = plug_in_save_dir_path + lvalue
+    save_file_path = plug_in_save_dir_path + var_name
     if os.path.isfile(save_file_path):
-        gp.qprint_timen("Restoring " + lvalue + " value from "
-                        + save_file_path + ".")
-        value = gm.file_to_list(save_file_path, newlines=0, comments=0,
-                                trim=1)[0]
+        gp.qprint_timen("Restoring " + var_name + " value from " + save_file_path + ".")
+        var_value = gm.file_to_list(save_file_path, newlines=0, comments=0, trim=1)[0]
         if type(default) is bool:
             # Convert from string to bool.
-            value = (value == 'True')
+            var_value = (var_value == 'True')
         if type(default) is int:
             # Convert from string to int.
-            value = int(value)
-        gp.qprint_varx(lvalue, value)
-        return value
+            var_value = int(var_value)
     else:
-        gp.qprint_timen("Save file " + save_file_path
-                        + " does not exist so returning default value.")
-        gp.qprint_var(default)
-        return default
+        var_value = default
+        gp.qprint_timen("Save file " + save_file_path + " does not exist so returning default value.")
+
+    gp.qprint_varx(var_name, var_value)
+    return var_value
 
 
 def exit_not_master():
