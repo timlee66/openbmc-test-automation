@@ -48,14 +48,11 @@ Redfish Code Update With ApplyTime Immediate
     Immediate  ${IMAGE_HOST_FILE_PATH_1}
 
 
-BMC Reboot When PNOR Update Goes On
-    [Documentation]  Trigger PNOR update and do BMC reboot.
-    [Tags]  BMC_Reboot_When_PNOR_Update_Goes_On
+BMC Reboot When BIOS Update Goes On
+    [Documentation]  Trigger BIOS update and do BMC reboot.
+    [Tags]  BMC_Reboot_When_BIOS_Update_Goes_On
 
-    ${bios_version_before}=  Redfish.Get Attribute  /redfish/v1/Systems/system/  BiosVersion
-    Redfish Firmware Update And Do BMC Reboot
-    ${bios_version_after}=  Redfish.Get Attribute  /redfish/v1/Systems/system/  BiosVersion
-    Valid Value  bios_version_after  ['${bios_version_before}']
+    Redfish Firmware Update And Do BMC Reboot  ${IMAGE_HOST_FILE_PATH_0}
 
 
 *** Keywords ***
@@ -80,10 +77,19 @@ Redfish Update Firmware
 
     Redfish.Login
 
+    Set ApplyTime  policy=${apply_time}
+
     # Redfish Upload Image And Check Progress State  ${apply_time}
     # Poweron Host And Verify Host Image  ${apply_time}
     Redfish Upload Image  /redfish/v1/UpdateService  ${image_file_path}
-    Sleep  5 mins
+    Sleep  1 mins
+
+    ${image_version}=  Get Version Tar  ${image_file_path}
+    ${image_info}=  Get Software Inventory State By Version  ${image_version}
+    ${image_id}=  Get Image Id By Image Info  ${image_info}
+
+    Wait Until Keyword Succeeds  1 min  10 sec
+    ...  Check Image Update Progress State  match_state='Updating'  image_id=${image_id}
 
     Wait State  os_running_match_state  15 mins
     Redfish.Login
@@ -91,13 +97,37 @@ Redfish Update Firmware
 
 Redfish Firmware Update And Do BMC Reboot
     [Documentation]  Update the firmware via redfish interface and do BMC reboot.
+    [Arguments]  ${image_file_path}
 
-    Set ApplyTime  policy="Immediate"
-    Redfish Upload Image  ${REDFISH_BASE_URI}UpdateService  ${IMAGE_FILE_PATH}
-    ${image_id}=  Get Latest Image ID
+    Redfish.Login
+    Set ApplyTime  policy=Immediate
+
+    Redfish Upload Image  /redfish/v1/UpdateService  ${image_file_path}
+    Sleep  1 mins
+
+    ${image_version}=  Get Version Tar  ${image_file_path}
+    ${image_info}=  Get Software Inventory State By Version  ${image_version}
+    ${image_id}=  Get Image Id By Image Info  ${image_info}
+
     Wait Until Keyword Succeeds  1 min  10 sec
     ...  Check Image Update Progress State  match_state='Updating'  image_id=${image_id}
 
-    # BMC reboot while PNOR update is in progress.
-    Redfish OBMC Reboot (off)
+    # BMC reboot while BIOS update is in progress.
+    Redfish BMC Reset Operation
+    Sleep  5s
 
+    ${status}=   Run Keyword And Return Status
+    ...    Ping Host  ${OPENBMC_HOST}
+    Run Keyword If  '${status}' == '${False}'
+    ...    Fail   msg=Ping Failed
+
+    Wait State  os_running_match_state  15 mins
+
+    Redfish.Login
+    Redfish Verify Host Version  ${image_file_path}
+
+Get Image Id By Image Info
+    [Documentation]  Get image ID from image_info.
+    [Arguments]  ${image_info}
+
+    [Return]  ${image_info["image_id"]}
