@@ -36,7 +36,7 @@ Redfish BMC Code Update
 
     Run Keyword If  not ${FORCE_UPDATE}
     ...  Activate Existing Firmware  ${image_version}
-    Redfish Update Firmware
+    Redfish Update Firmware  OnReset  ${IMAGE_FILE_PATH}
 
 *** Keywords ***
 
@@ -119,15 +119,20 @@ Set BMC Image Priority To Least
     Redfish OBMC Reboot (off)
     Redfish.Login
 
-
 Redfish Update Firmware
     [Documentation]  Update the BMC firmware via redfish interface.
+    [Arguments]  ${apply_time}  ${image_file_path}
+
+    # Description of argument(s):
+    # policy     ApplyTime allowed values (e.g. "OnReset", "Immediate").
 
     ${state}=  Get Pre Reboot State
     Rprint Vars  state
 
-    Run Keyword And Ignore Error  Set ApplyTime  policy=OnReset
-    Redfish Upload Image And Check Progress State
+    # Redfish Upload Image And Check Progress State  ${apply_time}  ${image_file_path}
+    Run Keyword And Ignore Error  Set ApplyTime  policy=${apply_Time}
+    Redfish Upload Image  /redfish/v1/UpdateService  ${image_file_path}
     Reboot BMC And Verify BMC Image
-    ...  OnReset  start_boot_seconds=${state['epoch_seconds']}
+    ...  ${apply_time}  start_boot_seconds=${state['epoch_seconds']}  image_file_path=${image_file_path}
+    Verify Get ApplyTime  ${apply_time}
 
