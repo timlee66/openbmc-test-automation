@@ -8,6 +8,7 @@ Resource        ../lib/utils.robot
 Resource        ../lib/state_manager.robot
 
 Library         String
+Library         var_funcs.py
 Library         ipmi_client.py
 
 *** Variables ***
@@ -17,7 +18,7 @@ ${netfnByte}=          ${EMPTY}
 ${cmdByte}=            ${EMPTY}
 ${arrayByte}=          array:byte:
 ${IPMI_USER_OPTIONS}   ${EMPTY}
-${IPMI_INBAND_CMD}=    ipmitool -C ${IPMI_CIPHER_LEVEL}
+${IPMI_INBAND_CMD}=    ipmitool -C ${IPMI_CIPHER_LEVEL} -p ${IPMI_PORT}
 ${HOST}=               -H
 ${RAW}=                raw
 
@@ -397,7 +398,7 @@ IPMI Create User
 Set Channel Access
     [Documentation]  Verify that user is able to run IPMI command
     ...  with given username and password.
-    [Arguments]  ${userid}  ${options}  ${channel}=1
+    [Arguments]  ${userid}  ${options}  ${channel_number}=${CHANNEL_NUMBER}
 
     # Description of argument(s):
     # userid          The user ID (e.g. "1", "2", etc.).
@@ -406,7 +407,7 @@ Set Channel Access
     # channel_number  The user's channel number (e.g. "1").
 
     ${ipmi_cmd}=  Catenate  SEPARATOR=
-    ...  channel setaccess${SPACE}${channel}${SPACE}${userid}
+    ...  channel setaccess${SPACE}${channel_number}${SPACE}${userid}
     ...  ${SPACE}${options}
     Run IPMI Standard Command  ${ipmi_cmd}
 
@@ -414,9 +415,14 @@ Set Channel Access
 Delete All Non Root IPMI User
     [Documentation]  Delete all non-root IPMI user.
 
-    FOR  ${userid}  IN RANGE  2  16
-      ${user_info}=  Get User Info  ${userid}
-      Run Keyword If  "${user_info['user_name']}" != ""
-      ...  Run IPMI Standard Command  user set name ${userid} ""
-      Sleep  5s
+    # Get complete list of user info records.
+    ${user_info}=  Get User Info  ${EMPTY}
+    # Remove header record.
+    ${user_info}=  Filter Struct  ${user_info}  [('user_name', None)]  invert=1
+    ${non_empty_user_info}=  Filter Struct  ${user_info}  [('user_name', '')]  invert=1
+    ${non_root_user_info}=  Filter Struct  ${non_empty_user_info}  [('user_name', 'root')]  invert=1
+
+    FOR  ${user_record}  IN  @{non_root_user_info}
+        Run IPMI Standard Command   user set name ${user_record['user_id']} ""
+        Sleep  5s
     END

@@ -82,7 +82,8 @@ Set and Verify LED BMC Heartbeat
 
     # Description of Arguments(s):
     # pre_req_state           The pre-requisite state of the host to perform the test (e.g. "On")
-    # asserted                The assert property that sets the value (e.g. "xyz.openbmc_project.Led.Physical.Action.On")
+    # asserted                The assert property that sets the value
+    #                         (e.g. "xyz.openbmc_project.Led.Physical.Action.On")
     # expected_indicator_led  The expected value of the IndicatorLED attribute for all the
 
     Run Key U  Redfish Power ${pre_req_state} \ stack_mode=skip \ quiet=1
@@ -113,7 +114,6 @@ Verify Heartbeat LEDs
     ${resp}=  Redfish.Get  /redfish/v1/Chassis/bmc
     Should Be Equal As Strings  ${resp.dict["IndicatorLED"]}
     ...  ${expected_indicator_led}
-
 
 Suite Teardown Execution
     [Documentation]  Do the post suite teardown.

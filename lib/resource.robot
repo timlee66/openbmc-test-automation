@@ -37,6 +37,8 @@ ${PDU_SLOT_NO}      ${EMPTY}
 # User define input SSH and HTTPS related parameters
 ${SSH_PORT}         22
 ${HTTPS_PORT}       443
+${IPMI_PORT}        623
+${HOST_SOL_PORT}    2200
 ${OPENBMC_SERIAL_HOST}      ${EMPTY}
 ${OPENBMC_SERIAL_PORT}      ${EMPTY}
 
@@ -54,6 +56,7 @@ ${NETWORK_RETRY_TIME}      6
 ${NETWORK_TIMEOUT}         18
 ${ICMP_TIMESTAMP_REQUEST}  13
 ${ICMP_ECHO_REQUEST}       8
+${CHANNEL_NUMBER}          1
 
 # BMC debug tarball parameter
 ${DEBUG_TARBALL_PATH}  ${EMPTY}
