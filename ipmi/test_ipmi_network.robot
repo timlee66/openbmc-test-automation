@@ -126,13 +126,13 @@ Set IPMI Inband Network Configuration
     # gateway  The Gateway address to be set using ipmitool-inband.
 
     Run Inband IPMI Standard Command
-    ...  lan set 1 ipsrc static  login_host=${login}
+    ...  lan set 1 ipsrc static  login_host=${login}  fail_on_err=${0}
     Run Inband IPMI Standard Command
-    ...  lan set 1 ipaddr ${ip}  login_host=${0}
+    ...  lan set 1 ipaddr ${ip}  login_host=${0}  fail_on_err=${0}
     Run Inband IPMI Standard Command
-    ...  lan set 1 netmask ${netmask}  login_host=${0}
+    ...  lan set 1 netmask ${netmask}  login_host=${0}  fail_on_err=${0}
     Run Inband IPMI Standard Command
-    ...  lan set 1 defgw ipaddr ${gateway}  login_host=${0}
+    ...  lan set 1 defgw ipaddr ${gateway}  login_host=${0}  fail_on_err=${0}
 
 
 Restore Configuration
