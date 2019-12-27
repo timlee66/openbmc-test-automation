@@ -88,9 +88,9 @@ Verify LDAP Config Update With Incorrect AuthenticationType
     [Tags]  Verify_LDAP_Update_With_Incorrect_AuthenticationType
 
     ${body}=  Catenate  {'${ldap_type}': {'Authentication': {'AuthenticationType':'KerberosKeytab'}}}
-    ...  valid_status_codes=[400]
+    #...  valid_status_codes=[400]
     Redfish.Patch  ${REDFISH_BASE_URI}AccountService
-    ...  body=${body}
+    ...  body=${body}  valid_status_codes=[400]
 
 
 Verify LDAP Login With Correct LDAP URL
@@ -106,7 +106,15 @@ Verify LDAP Config Update With Incorrect LDAP URL
     [Teardown]  Run Keywords  Restore LDAP URL  AND
     ...  FFDC On Test Case Fail
 
-    Config LDAP URL  "ldap://1.2.3.4"
+    #Config LDAP URL  "ldap://1.2.3.4"
+    Redfish.Patch  ${REDFISH_BASE_URI}AccountService
+    ...  body={'${ldap_type}': {'ServiceAddresses': ['ldap://1.2.3.4']}}
+    Sleep  15s
+    # After update, LDAP login.
+    Run Keyword And Expect Error  InvalidCredentialsError*
+    ...  Redfish.Login  ${LDAP_USER}  ${LDAP_USER_PASSWORD}
+    Redfish.Logout
+    Redfish.Login
 
 
 Verify LDAP Configuration Exist
@@ -201,8 +209,9 @@ Verify LDAP User With Read Privilege Able To Check Inventory
     [Teardown]  Run Keywords  FFDC On Test Case Fail  AND  Restore LDAP Privilege
     [Template]  Set Read Privilege And Check Firmware Inventory
 
-    User
-    Callback
+    #User
+    ReadOnly
+    #Callback
 
 
 Verify LDAP User With Read Privilege Should Not Do Host Poweron
@@ -212,8 +221,9 @@ Verify LDAP User With Read Privilege Should Not Do Host Poweron
     [Teardown]  Run Keywords  FFDC On Test Case Fail  AND  Restore LDAP Privilege
     [Template]  Set Read Privilege And Check Poweron
 
-    User
-    Callback
+    #User
+    ReadOnly
+    #Callback
 
 
 Update LDAP Group Name And Verify Operations
@@ -224,14 +234,28 @@ Update LDAP Group Name And Verify Operations
     [Teardown]  Restore LDAP Privilege
 
     # group_name             group_privilege  valid_status_codes
-    ${GROUP_NAME}            Administrator    [${HTTP_OK}]
-    ${GROUP_NAME}            Operator         [${HTTP_UNAUTHORIZED}, ${HTTP_FORBIDDEN}]
-    ${GROUP_NAME}            User             [${HTTP_UNAUTHORIZED}, ${HTTP_FORBIDDEN}]
-    ${GROUP_NAME}            Callback         [${HTTP_UNAUTHORIZED}, ${HTTP_FORBIDDEN}]
-    Invalid_LDAP_Group_Name  Administrator    [${HTTP_UNAUTHORIZED}, ${HTTP_FORBIDDEN}]
-    Invalid_LDAP_Group_Name  Operator         [${HTTP_UNAUTHORIZED}, ${HTTP_FORBIDDEN}]
-    Invalid_LDAP_Group_Name  User             [${HTTP_UNAUTHORIZED}, ${HTTP_FORBIDDEN}]
-    Invalid_LDAP_Group_Name  Callback         [${HTTP_UNAUTHORIZED}, ${HTTP_FORBIDDEN}]
+    ${GROUP_NAME}            group_privilege=Administrator
+    ...  valid_status_codes=[${HTTP_OK},${HTTP_NO_CONTENT}]
+    ${GROUP_NAME}            group_privilege=Operator
+    ...  valid_status_codes=[${HTTP_UNAUTHORIZED}, ${HTTP_FORBIDDEN}]
+    #${GROUP_NAME}            User             [${HTTP_UNAUTHORIZED}, ${HTTP_FORBIDDEN}]
+    ${GROUP_NAME}            group_privilege=ReadOnly
+    ...  valid_status_codes=[${HTTP_UNAUTHORIZED}, ${HTTP_FORBIDDEN}]
+    #${GROUP_NAME}            group_privilege=Callback
+    ${GROUP_NAME}            group_privilege=NoAccess
+    ...  valid_status_codes=[${HTTP_UNAUTHORIZED}, ${HTTP_FORBIDDEN}]
+    ...  extra_status_codes=[${HTTP_INTERNAL_SERVER_ERROR}]
+    Invalid_LDAP_Group_Name  group_privilege=Administrator
+    ...  valid_status_codes=[${HTTP_UNAUTHORIZED}, ${HTTP_FORBIDDEN}]
+    Invalid_LDAP_Group_Name  group_privilege=Operator
+    ...  valid_status_codes=[${HTTP_UNAUTHORIZED}, ${HTTP_FORBIDDEN}]
+    #Invalid_LDAP_Group_Name  User             [${HTTP_UNAUTHORIZED}, ${HTTP_FORBIDDEN}]
+    Invalid_LDAP_Group_Name  group_privilege=ReadOnly
+    ...  valid_status_codes=[${HTTP_UNAUTHORIZED}, ${HTTP_FORBIDDEN}]
+    #Invalid_LDAP_Group_Name  group_privilege=Callback
+    Invalid_LDAP_Group_Name  group_privilege=NoAccess
+    ...  valid_status_codes=[${HTTP_UNAUTHORIZED}, ${HTTP_FORBIDDEN}]
+    ...  extra_status_codes=[${HTTP_INTERNAL_SERVER_ERROR}]
 
 
 Verify LDAP BaseDN Update And LDAP Login
@@ -294,6 +318,7 @@ Verify Authorization With Null Privilege
 
     Update LDAP Config And Verify Set Host Name  ${GROUP_NAME}  ${EMPTY}
     ...  [${HTTP_FORBIDDEN}]
+    ...  extra_status_codes=[${HTTP_INTERNAL_SERVER_ERROR}]
 
 
 Verify Authorization With Invalid Privilege
@@ -304,6 +329,7 @@ Verify Authorization With Invalid Privilege
 
     Update LDAP Config And Verify Set Host Name  ${GROUP_NAME}
     ...  Invalid_Privilege  [${HTTP_FORBIDDEN}]
+    ...  extra_status_codes=[${HTTP_INTERNAL_SERVER_ERROR}]
 
 
 Verify LDAP Login With Invalid Data
@@ -313,9 +339,11 @@ Verify LDAP Login With Invalid Data
     [Teardown]  Run Keywords  FFDC On Test Case Fail  AND
     ...  Create LDAP Configuration
 
-    Create LDAP Configuration  ${LDAP_TYPE}  Invalid_LDAP_Server_URI
+    ${status}=  Run Keyword And Return Status  Create LDAP Configuration  ${LDAP_TYPE}
+    ...  Invalid_LDAP_Server_URI
     ...  Invalid_LDAP_BIND_DN  LDAP_BIND_DN_PASSWORD
     ...  Invalid_LDAP_BASE_DN
+    Valid Value  status  [${False}]
     Sleep  15s
     Redfish Verify LDAP Login  ${False}
 
@@ -327,8 +355,10 @@ Verify LDAP Config Creation Without BASE_DN
     [Teardown]  Run Keywords  FFDC On Test Case Fail  AND
     ...  Create LDAP Configuration
 
-    Create LDAP Configuration  ${LDAP_TYPE}  Invalid_LDAP_Server_URI
+    ${status}=  Run Keyword And Return Status  Create LDAP Configuration  ${LDAP_TYPE}
+    ...  Invalid_LDAP_Server_URI
     ...  Invalid_LDAP_BIND_DN  LDAP_BIND_DN_PASSWORD  ${EMPTY}
+    Valid Value  status  [${False}]
     Sleep  15s
     Redfish Verify LDAP Login  ${False}
 
@@ -340,6 +370,8 @@ Verify LDAP Authentication Without Password
 
     ${status}=  Run Keyword And Return Status  Redfish.Login  ${LDAP_USER}
     Valid Value  status  [${False}]
+    Redfish.Logout
+    Redfish.Login
 
 
 Verify LDAP Login With Invalid BASE_DN
@@ -440,6 +472,7 @@ Update LDAP Config And Verify Set Host Name
     [Documentation]  Update LDAP config and verify by attempting to set host name.
     [Arguments]  ${group_name}  ${group_privilege}=Administrator
     ...  ${valid_status_codes}=[${HTTP_OK}]
+    ...  ${extra_status_codes}=[${HTTP_OK}]
 
     # Description of argument(s):
     # group_name                    The group name of user.
@@ -449,8 +482,17 @@ Update LDAP Config And Verify Set Host Name
     #                               operation (e.g. "200") used to update
     #                               HostName.  See prolog of rest_request
     #                               method in redfish_plut.py for details.
-    Update LDAP Configuration with LDAP User Role And Group  ${LDAP_TYPE}
-    ...  ${group_privilege}  ${group_name}
+    #Update LDAP Configuration with LDAP User Role And Group  ${LDAP_TYPE}
+    #...  ${group_privilege}  ${group_name}
+    ${local_role_remote_group}=  Create Dictionary  LocalRole=${group_privilege}  RemoteGroup=${group_name}
+    ${remote_role_mapping}=  Create List  ${local_role_remote_group}
+    ${ldap_data}=  Create Dictionary  RemoteRoleMapping=${remote_role_mapping}
+    ${payload}=  Create Dictionary  ${ldap_type}=${ldap_data}
+    Redfish.Patch  ${REDFISH_BASE_URI}AccountService  body=&{payload}
+    ...  valid_status_codes=${extra_status_codes}
+    # Provide adequate time for LDAP daemon to restart after the update.
+    Sleep  15s
+    #
     Redfish.Login  ${LDAP_USER}  ${LDAP_USER_PASSWORD}
     # Verify that the LDAP user in ${group_name} with the given privilege is
     # allowed to change the hostname.
@@ -474,7 +516,8 @@ Create LDAP Configuration
     [Documentation]  Create LDAP configuration.
     [Arguments]  ${ldap_type}=${LDAP_TYPE}  ${ldap_server_uri}=${LDAP_SERVER_URI}
     ...  ${ldap_bind_dn}=${LDAP_BIND_DN}  ${ldap_bind_dn_password}=${LDAP_BIND_DN_PASSWORD}
-    ...  ${ldap_base_dn}=${LDAP_BASE_DN}
+    ...  ${ldap_base_dn}=${LDAP_BASE_DN}  ${ldap_group_name_attr}=${LDAP_GROUP_NAME_ATTR}
+    ...  ${ldap_user_name_attr}=${LDAP_USER_NAME_ATTR}
 
     # Description of argument(s):
     # ldap_type              The LDAP type ("ActiveDirectory" or "LDAP").
@@ -492,7 +535,9 @@ Create LDAP Configuration
     ...        'Password': '${ldap_bind_dn_password}'},
     ...   'LDAPService':
     ...       {'SearchSettings':
-    ...           {'BaseDistinguishedNames': ['${ldap_base_dn}']}}}}
+    ...           {'BaseDistinguishedNames': ['${ldap_base_dn}'],
+    ...            'GroupsAttribute':'${ldap_group_name_attr}',
+    ...            'UsernameAttribute':'${ldap_user_name_attr}'}}}}
 
     Redfish.Patch  ${REDFISH_BASE_URI}AccountService  body=${body}
     Sleep  15s
