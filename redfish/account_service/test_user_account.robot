@@ -125,7 +125,10 @@ Verify Error Upon Creating Same Users With Different Privileges
     Redfish.Post  ${REDFISH_ACCOUNTS_URI}  body=&{payload}
     ...  valid_status_codes=[${HTTP_BAD_REQUEST}]
 
+    Redfish.Logout
+    Redfish.Login
     Redfish.Delete  ${REDFISH_ACCOUNTS_URI}test_user
+    Redfish.Logout
 
 Verify Modifying User Attributes
     [Documentation]  Verify modifying user attributes.

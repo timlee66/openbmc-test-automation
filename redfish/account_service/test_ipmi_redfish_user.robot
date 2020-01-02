@@ -248,8 +248,12 @@ Test Teardown Execution
     [Documentation]  Do the post test teardown.
 
     FFDC On Test Case Fail
+
+    Redfish.Logout
+    Redfish.Login
     # Delete the test user.
     Run Keyword And Ignore Error
     ...  Redfish.Delete  /redfish/v1/AccountService/Accounts/${random_username}
+    Redfish.Logout
 
     Redfish.Logout
