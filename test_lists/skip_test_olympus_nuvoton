@@ -1,0 +1,25 @@
+# redfish/service_root/test_service_root.robot
+#  didn't enable port 80
+-e Redfish_Login_Using_HTTPS_Wrong_Port_80_Protocol
+-e Redfish_Login_Using_Unsecured_HTTP
+
+# ipmi/test_ipmi_network.robot
+#  not support warm reset command
+-e Test_IPMI_Warm_Reset
+
+# skip all of redfish/eventlog/test_esel.robot
+-e Verify_eSEL_Using_Redfish
+-e Verify_eSEL_Entries_Using_Redfish
+-e Verify_eSEL_Description_And_EntryID_Using_REST
+-e Verify_Multiple_eSEL_Using_Redfish
+-e Check_eSEL_AdditionalData
+-e Test_Wrong_Reservation_ID
+-e Test_Correct_Reservation_ID
+
+-v MACHINE_TYPE:olympus-nuvoton
+-v log_file_path:log.txt
+-v FORCE_UPDATE:1
+-v REDFISH_BASE_URI:/redfish/v1/
+-v DEBUG_TARBALL_PATH:debug-tarball.tar.xz
+
+
