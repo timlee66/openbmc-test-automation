@@ -16,10 +16,24 @@
 -e Test_Wrong_Reservation_ID
 -e Test_Correct_Reservation_ID
 
+# skip all of redfish/extended/test_occ_power.robot
+-e Verify_OCC_Object_Count
+-e Verify_OCC_State_When_Host_Is_Booted
+-e Verify_OCC_State_After_Host_Reboot
+-e Verify_OCC_State_After_BMC_Reset
+-e Verify_OCC_State_At_Standby
+
 -v MACHINE_TYPE:olympus-nuvoton
 -v log_file_path:log.txt
 -v FORCE_UPDATE:1
 -v REDFISH_BASE_URI:/redfish/v1/
 -v DEBUG_TARBALL_PATH:debug-tarball.tar.xz
 
-
+-v BMC_TFTP_FILE_NAME:test_1.static.mtd.tar
+-v IMAGE_FILE_PATH:test_1.static.mtd.tar
+-v IMAGE0_FILE_PATH:test_2.static.mtd.tar
+-v IMAGE1_FILE_PATH:test_3.static.mtd.tar
+-v IMAGE_UNSIGNED_FILE_PATH:bmc_bad_unsig.static.mtd.tar
+-v IMAGE_HOST_FILE_PATH_0:bios7.tar
+-v IMAGE_HOST_FILE_PATH_1:bios6.tar
+-v BAD_IMAGES_DIR_PATH:./
