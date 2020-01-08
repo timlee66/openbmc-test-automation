@@ -96,7 +96,7 @@ Verify Watchdog Errorlog Content
     ${elog_entry}=  Get URL List  ${BMC_LOGGING_ENTRY}
     ${elog}=  Read Properties  ${elog_entry[0]}
     Should Be Equal As Strings
-    ...  ${elog["Message"]}  org.open_power.Host.Boot.Error.WatchdogTimedOut
+    ...  ${elog["Message"]}  xyz.openbmc_project.Control.Boot.Error.WatchdogTimedOut
     ...  msg=Watchdog timeout error log was not found.
     Should Be Equal As Strings
     ...  ${elog["Severity"]}  xyz.openbmc_project.Logging.Entry.Level.Error
@@ -224,4 +224,4 @@ Redfish Purge Event Log
     [Documentation]  Do Redfish EventLog purge.
 
     Redfish.Post  ${EVENT_LOG_URI}Actions/LogService.ClearLog
-    ...  valid_status_codes=[${HTTP_OK}]
+    ...  valid_status_codes=[${HTTP_NO_CONTENT}]
