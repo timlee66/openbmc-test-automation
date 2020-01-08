@@ -16,6 +16,8 @@
 -e Test_Wrong_Reservation_ID
 -e Test_Correct_Reservation_ID
 
+-e Create_Test_Error_Callout_And_Verify_LED
+
 # skip all of redfish/extended/test_occ_power.robot
 -e Verify_OCC_Object_Count
 -e Verify_OCC_State_When_Host_Is_Booted
