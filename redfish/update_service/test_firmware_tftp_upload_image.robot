@@ -95,27 +95,13 @@ TFTP Download Install
 
     Set ApplyTime  policy=${policy}
 
+    ${install_version}=  Get Image Version From TFTP Server  ${TFTP_SERVER}  ${image_file_name}
+
     # Download image from TFTP server to BMC.
     Redfish.Post  /redfish/v1/UpdateService/Actions/UpdateService.SimpleUpdate
     ...  body={"TransferProtocol" : "TFTP", "ImageURI" : "${TFTP_SERVER}/${image_file_name}"}
 
-    # Wait for image tar file to download complete.
-    ${image_id}=  Wait Until Keyword Succeeds  60 sec  0.1 sec  Get Latest Image ID
-    Rprint Vars  image_id
-
-    # Let the image get extracted and it should not fail.
-    #Sleep  5s
-    #Check Image Update Progress State  match_state='Disabled', 'Updating'  image_id=${image_id}
-
-    # Get image version currently installation in progress.
-    ${install_version}=  Get Firmware Image Version  image_id=${image_id}
-    Rprint Vars  install_version
-
-    #Check Image Update Progress State  match_state='Updating'  image_id=${image_id}
-
-    # Wait for the image to install complete.
-    Wait Until Keyword Succeeds  8 min  15 sec
-    ...  Check Image Update Progress State  match_state='Enabled'  image_id=${image_id}
+    Sleep  120s
 
     Reboot And Wait For BMC Standby  policy=${policy}  start_boot_seconds=${state['epoch_seconds']}
 
@@ -138,26 +124,13 @@ ImageURI Download Install
 
     Set ApplyTime  policy=${policy}
 
+    ${install_version}=  Get Image Version From TFTP Server  ${TFTP_SERVER}  ${image_file_name}
+
     # Download image from TFTP server via ImageURI to BMC.
     Redfish.Post  /redfish/v1/UpdateService/Actions/UpdateService.SimpleUpdate
     ...  body={"ImageURI": "tftp://${TFTP_SERVER}/${image_file_name}"}
 
-    # Wait for image tar file download to complete.
-    ${image_id}=  Wait Until Keyword Succeeds  60 sec  0.1 sec  Get Latest Image ID
-    Rprint Vars  image_id
-
-    # Let the image get extracted and it should not fail.
-    #Sleep  5s
-   # Check Image Update Progress State  match_state='Disabled', 'Updating'  image_id=${image_id}
-
-    ${install_version}=  Get Firmware Image Version  image_id=${image_id}
-    Rprint Vars  install_version
-
-    #Check Image Update Progress State  match_state='Updating'  image_id=${image_id}
-
-    # Wait for the image to install complete.
-    Wait Until Keyword Succeeds  8 min  15 sec
-    ...  Check Image Update Progress State  match_state='Enabled'  image_id=${image_id}
+    Sleep  120s
 
     Reboot And Wait For BMC Standby  policy=${policy}  start_boot_seconds=${state['epoch_seconds']}
 
@@ -188,7 +161,7 @@ Same Firmware Install Two Times
     ...  ${image_version}
     Rprint Vars  software_inventory_record
 
-    ${image_id}=  Wait Until Keyword Succeeds  60 sec  10 sec  Get Latest Image ID
+    ${image_id}=  Wait Until Keyword Succeeds  60 sec  0.1 sec  Get Latest Image ID
     Rprint Vars  image_id
 
     Check Image Update Progress State  match_state='Enabled'  image_id=${image_id}
