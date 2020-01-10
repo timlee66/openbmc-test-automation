@@ -25,6 +25,13 @@
 -e Verify_OCC_State_After_BMC_Reset
 -e Verify_OCC_State_At_Standby
 
+
+-e Verify_Current_Fan_Thermal_Mode
+-e Verify_Supported_Fan_Thermal_Modes_Available
+-e Verify_Supported_Fan_Thermal_Modes_Switch_At_Standby
+-e Verify_Supported_Fan_Thermal_Modes_Switch_At_Runtime
+-e Verify_Supported_Fan_Thermal_Mode_Remains_Set_After_IPL
+
 -v MACHINE_TYPE:olympus-nuvoton
 -v log_file_path:log.txt
 -v FORCE_UPDATE:1
@@ -36,6 +43,6 @@
 -v IMAGE0_FILE_PATH:test_2.static.mtd.tar
 -v IMAGE1_FILE_PATH:test_3.static.mtd.tar
 -v IMAGE_UNSIGNED_FILE_PATH:bmc_bad_unsig.static.mtd.tar
--v IMAGE_HOST_FILE_PATH_0:bios7.tar
--v IMAGE_HOST_FILE_PATH_1:bios6.tar
+-v IMAGE_HOST_FILE_PATH_0:bios6.tar
+-v IMAGE_HOST_FILE_PATH_1:bios7.tar
 -v BAD_IMAGES_DIR_PATH:./
