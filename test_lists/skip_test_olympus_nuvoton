@@ -25,6 +25,7 @@
 -e Verify_OCC_State_After_BMC_Reset
 -e Verify_OCC_State_At_Standby
 
+-e Run_Multiple_Power_Cycle
 
 -e Verify_Current_Fan_Thermal_Mode
 -e Verify_Supported_Fan_Thermal_Modes_Available
