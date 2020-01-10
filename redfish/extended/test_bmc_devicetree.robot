@@ -56,7 +56,7 @@ Check BMC Memory Name Property Is Set
    [Template]  Template Check Property
 
    #Property
-   memory@80000000/name
+   memory/name
 
 
 Check BMC Memory Device Type Property Is Set
@@ -66,63 +66,7 @@ Check BMC Memory Device Type Property Is Set
    [Template]  Template Check Property
 
    #Property
-   memory@80000000/device_type
-
-
-Check BMC FSI Name Property Is Set
-   [Documentation]  Verify if the BMC FSI name property is populated.
-   [Tags]  Check_BMC_FSI_Name_Property_Is_Set
-   [Template]  Template Check Property
-
-   #Property
-   gpio-fsi/name
-
-
-Check BMC FSI Compatible Property Is Set
-   [Documentation]  Verify if the BMC FSI compatible property is populated.
-   [Tags]  Check_BMC_FSI_Compatible_Property_Is_Set
-   [Template]  Template Check Property
-
-   #Property
-   gpio-fsi/compatible
-
-
-Check BMC GPIO-FSI Name Property Is Set
-   [Documentation]  Verify if the BMC GPIO-FSI name property is populated.
-   [Tags]  Check_BMC_GPIO_FSI_Name_Property_Is_Set
-   [Template]  Template Check Property
-
-   #Property
-   gpio-fsi/name
-
-
-Check BMC GPIO-FSI Compatible Property Is Set
-   [Documentation]  Verify if the BMC GPIO-FSI compatible property is populated.
-   [Tags]  Check_BMC_GPIO_FSI_Compatible_Property_Is_Set
-   [Template]  Template Check Property
-
-   #Property
-   gpio-fsi/compatible
-
-
-Check BMC GPIO-keys Name Property Is Set
-   [Documentation]  Verify if the BMC GPIO-keys name property is
-   ...  populated.
-   [Tags]  Check_BMC_GPIO_keys_Name_Property_Is_Set
-   [Template]  Template Check Property
-
-   #Property
-   gpio-keys/name
-
-
-Check BMC GPIO-keys Compatible Property Is Set
-   [Documentation]  Verify if the BMC GPIO-keys compatible property is
-   ...  populated.
-   [Tags]  Check_BMC_GPIO_keys_Compatible_Property_Is_Set
-   [Template]  Template Check Property
-
-   #Property
-   gpio-keys/compatible
+   memory/device_type
 
 
 Check BMC IIO-HWMON Name Property Is Set
@@ -132,7 +76,7 @@ Check BMC IIO-HWMON Name Property Is Set
    [Template]  Template Check Property
 
    #Property
-   iio-hwmon-dps310/name
+   iio-hwmon/name
 
 
 Check BMC IIO-HWMON Compatible Property Is Set
@@ -142,7 +86,7 @@ Check BMC IIO-HWMON Compatible Property Is Set
    [Template]  Template Check Property
 
    #Property
-   iio-hwmon-dps310/compatible
+   iio-hwmon/compatible
 
 
 Check BMC LED Name Property Is Set
