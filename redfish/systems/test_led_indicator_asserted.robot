@@ -25,7 +25,7 @@ Verify Identify Asserted At Standby
     [Template]  Set and Verify Identify Indicator
 
     # pre_req_state     asserted     expected_indicator_led
-    Off                 1            Blinking
+    Off                 1            Lit
     Off                 0            Off
 
 
@@ -35,7 +35,7 @@ Verify Identify Asserted At Runtime
     [Template]  Set and Verify Identify Indicator
 
     # pre_req_state     asserted     expected_indicator_led
-    On                  1            Blinking
+    On                  1            Lit
     On                  0            Off
 
 
