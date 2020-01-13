@@ -456,14 +456,14 @@ Verify Watchdog EventLog Content
     #    "Created": "2019-05-31T18:41:33+00:00",
     #    "EntryType": "Event",
     #    "Id": "31",
-    #    "Message": "org.open_power.Host.Boot.Error.WatchdogTimedOut",
+    #    "Message": "xyz.openbmc_project.Control.Boot.Error.WatchdogTimedOut",
     #    "Name": "System DBus Event Log Entry",
     #    "Severity": "Critical"
     # }
 
     ${elog}=  Get Event Logs
     Should Be Equal As Strings
-    ...  ${elog[0]["Message"]}  org.open_power.Host.Boot.Error.WatchdogTimedOut
+    ...  ${elog[0]["Message"]}  xyz.openbmc_project.Control.Boot.Error.WatchdogTimedOut
     ...  msg=Watchdog timeout event log was not found.
     Should Be Equal As Strings
     ...  ${elog[0]["Severity"]}  Critical
