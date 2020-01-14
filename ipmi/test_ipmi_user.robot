@@ -80,7 +80,7 @@ Verify IPMI User Creation With Invalid ID
     FOR  ${id}  IN  @{id_list}
       ${msg}=  Run Keyword And Expect Error  *  Run IPMI Standard Command
       ...  user set name ${id} newuser
-      Should Contain  ${msg}  User ID is limited to range
+      Should Contain Any  ${msg}  User ID is limited to range  Parameter out of range
     END
 
 Verify Setting IPMI User With Invalid Password
@@ -477,6 +477,7 @@ Set User Password And Verify
     ...  user set password ${random_userid} ${password} ${password_option}
     Rprint Vars  status
     Valid Value  status  [${expected_result}]
+    Return From Keyword If  '${expected_result}' == '${False}'
 
     # Set admin privilege and enable IPMI messaging for newly created user.
     Set Channel Access  ${random_userid}  ipmi=on privilege=${admin_level_priv}
