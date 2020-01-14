@@ -7,7 +7,8 @@
 #  not support warm reset command
 -e Test_IPMI_Warm_Reset
 
-# skip all of redfish/eventlog/test_esel.robot
+# Skip all of redfish/eventlog/test_esel.robot
+# this is used for ibmc oem ipmi commamd
 -e Verify_eSEL_Using_Redfish
 -e Verify_eSEL_Entries_Using_Redfish
 -e Verify_eSEL_Description_And_EntryID_Using_REST
@@ -16,22 +17,31 @@
 -e Test_Wrong_Reservation_ID
 -e Test_Correct_Reservation_ID
 
+# We haven't yet implemented this feature
 -e Create_Test_Error_Callout_And_Verify_LED
 
-# skip all of redfish/extended/test_occ_power.robot
+# Skip all of redfish/extended/test_occ_power.robot
+# OCC is ibmc only
 -e Verify_OCC_Object_Count
 -e Verify_OCC_State_When_Host_Is_Booted
 -e Verify_OCC_State_After_Host_Reboot
 -e Verify_OCC_State_After_BMC_Reset
 -e Verify_OCC_State_At_Standby
 
+# We don't have PDU device
 -e Run_Multiple_Power_Cycle
 
+# We using PID control
 -e Verify_Current_Fan_Thermal_Mode
 -e Verify_Supported_Fan_Thermal_Modes_Available
 -e Verify_Supported_Fan_Thermal_Modes_Switch_At_Standby
 -e Verify_Supported_Fan_Thermal_Modes_Switch_At_Runtime
 -e Verify_Supported_Fan_Thermal_Mode_Remains_Set_After_IPL
+
+# The test has script issue
+-e Test_BMC_Redfish_Account_Management
+-e Test_BMC_Redfish_Boot_Host_And_ForceOff
+-e Test_BMC_Redfish_Boot_Host_And_GracefulShutdown
 
 -v MACHINE_TYPE:olympus-nuvoton
 -v log_file_path:log.txt
