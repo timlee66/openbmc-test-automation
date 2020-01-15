@@ -95,7 +95,7 @@ TFTP Download Install
 
     Set ApplyTime  policy=${policy}
 
-    ${install_version}=  Get Image Version From TFTP Server  ${TFTP_SERVER}  ${image_file_name}
+    ${install_version}=  Get Image Version From SFTP Server  ${SFTP_SERVER}  ${SFTP_USER}  ${SFTP_PATH}/${image_file_name}
 
     # Download image from TFTP server to BMC.
     Redfish.Post  /redfish/v1/UpdateService/Actions/UpdateService.SimpleUpdate
@@ -124,7 +124,7 @@ ImageURI Download Install
 
     Set ApplyTime  policy=${policy}
 
-    ${install_version}=  Get Image Version From TFTP Server  ${TFTP_SERVER}  ${image_file_name}
+    ${install_version}=  Get Image Version From SFTP Server  ${SFTP_SERVER}  ${SFTP_USER}  ${SFTP_PATH}/${image_file_name}
 
     # Download image from TFTP server via ImageURI to BMC.
     Redfish.Post  /redfish/v1/UpdateService/Actions/UpdateService.SimpleUpdate
@@ -156,7 +156,7 @@ Same Firmware Install Two Times
     Redfish.Post  /redfish/v1/UpdateService/Actions/UpdateService.SimpleUpdate
     ...  body={"ImageURI": "tftp://${tftp_server}/${image_file_name}"}
 
-    ${image_version}=  Get Image Version From TFTP Server  ${tftp_server}  ${image_file_name}
+    ${image_version}=  Get Image Version From SFTP Server  ${SFTP_SERVER}  ${SFTP_USER}  ${SFTP_PATH}/${image_file_name}
     ${software_inventory_record}=  Get Software Inventory State By Version
     ...  ${image_version}
     Rprint Vars  software_inventory_record

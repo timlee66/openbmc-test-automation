@@ -637,3 +637,19 @@ Get Image Version From TFTP Server
 
     [Return]  ${version}
 
+Get Image Version From SFTP Server
+    [Documentation]  Get and return the image version
+    ...  from the SFTP server.
+    [Arguments]  ${server_host}  ${username}  ${image_file_name}
+
+    # Description of argument(s):
+    # server_host   The host name or IP address of the TFTP server.
+    # image_file_name  The file name of the image.
+
+    Shell Cmd
+    ...  scp ${username}@${server_host}:${image_file_name} tftp_image.tar
+    ${version}=  Get Version Tar  tftp_image.tar
+    OperatingSystem.Remove File  tftp_image.tar
+
+    [Return]  ${version}
+

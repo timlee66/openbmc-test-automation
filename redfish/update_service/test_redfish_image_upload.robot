@@ -160,7 +160,7 @@ Redfish TFTP Bad Firmware Update
     Redfish.Post  /redfish/v1/UpdateService/Actions/UpdateService.SimpleUpdate
     ...  body={"TransferProtocol" : "TFTP", "ImageURI" : "${TFTP_SERVER}/${image_file_name}"}
     Sleep  60s
-    ${image_version}=  Get Image Version From TFTP Server  ${TFTP_SERVER}  ${image_file_name}
+    ${image_version}=  Get Image Version From SFTP Server  ${SFTP_SERVER}  ${SFTP_USER}  ${SFTP_PATH}/${image_file_name}
     Return From Keyword If  '${image_version}' == '${EMPTY}'
     # Wait for image tar file to download complete.
     ${image_id}=  Wait Until Keyword Succeeds  60 sec  10 sec  Get Latest Image ID
