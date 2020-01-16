@@ -43,6 +43,10 @@
 -e Test_BMC_Redfish_Boot_Host_And_ForceOff
 -e Test_BMC_Redfish_Boot_Host_And_GracefulShutdown
 
+# do not change root  name and password
+-e Verify_Setting_IPMI_Root_User_With_New_Name
+-e Verify_IPMI_Root_User_Password_Change
+
 -v MACHINE_TYPE:olympus-nuvoton
 -v log_file_path:log.txt
 -v FORCE_UPDATE:1
