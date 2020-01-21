@@ -266,66 +266,67 @@ Disable IPMI User And Verify
     Should Contain  ${msg}  Unable to establish IPMI
 
 
-Verify IPMI Root User Password Change
-    [Documentation]  Change IPMI root user password and verify that
-    ...  root user is able to run IPMI command.
-    [Tags]  Verify_IPMI_Root_User_Password_Change
-    [Teardown]  Wait Until Keyword Succeeds  15 sec  5 sec
-    ...  Set Default Password For IPMI Root User
-
-    # Set new password for root user.
-    Run IPMI Standard Command
-    ...  user set password ${root_userid} ${valid_password}
-
-    # Verify that root user is able to run IPMI command using new password.
-    Wait Until Keyword Succeeds  15 sec  5 sec  Verify IPMI Username And Password
-    ...  root  ${valid_password}
-
-
-Verify Administrator And No Access Privilege For Different Channels
-    [Documentation]  Set administrator and no access privilege for different channels and verify.
-    [Tags]  Verify_Administrator_And_No_Access_Privilege_For_Different_Channels
-
-    ${random_userid}  ${random_username}=  Create Random IPMI User
-    Run IPMI Standard Command
-    ...  user set password ${random_userid} ${valid_password}
-
-    # Set admin privilege for newly created user with channel 1.
-    Set Channel Access  ${random_userid}  ipmi=on privilege=${admin_level_priv}  1
-
-    # Set no access privilege for newly created user with channel 2.
-    Set Channel Access  ${random_userid}  ipmi=on privilege=${no_access_priv}  2
-
-    Enable IPMI User And Verify  ${random_userid}
-
-    # Verify that user is able to run administrator level IPMI command with channel 1.
-    Verify IPMI Command  ${random_username}  ${valid_password}  Administrator  1
-
-    # Verify that user is unable to run IPMI command with channel 2.
-    Run IPMI Standard Command  sel info 2  expected_rc=${1}  U=${random_username}  P=${valid_password}
+#Verify IPMI Root User Password Change
+#    [Documentation]  Change IPMI root user password and verify that
+#    ...  root user is able to run IPMI command.
+#    [Tags]  Verify_IPMI_Root_User_Password_Change
+#    [Teardown]  Wait Until Keyword Succeeds  15 sec  5 sec
+#    ...  Set Default Password For IPMI Root User
+#
+#    # Set new password for root user.
+#    Run IPMI Standard Command
+#    ...  user set password ${root_userid} ${valid_password}
+#
+#
+#    # Verify that root user is able to run IPMI command using new password.
+#    Wait Until Keyword Succeeds  15 sec  5 sec  Verify IPMI Username And Password
+#    ...  root  ${valid_password}
 
 
-Verify Operator And User Privilege For Different Channels
-    [Documentation]  Set operator and user privilege for different channels and verify.
-    [Tags]  Verify_Operator_And_User_Privilege_For_Different_Channels
+#Verify Administrator And No Access Privilege For Different Channels
+#    [Documentation]  Set administrator and no access privilege for different channels and verify.
+#    [Tags]  Verify_Administrator_And_No_Access_Privilege_For_Different_Channels
+#
+#    ${random_userid}  ${random_username}=  Create Random IPMI User
+#    Run IPMI Standard Command
+#    ...  user set password ${random_userid} ${valid_password}
+#
+#    # Set admin privilege for newly created user with channel 1.
+#    Set Channel Access  ${random_userid}  ipmi=on privilege=${admin_level_priv}  1
+#
+#    # Set no access privilege for newly created user with channel 2.
+#    Set Channel Access  ${random_userid}  ipmi=on privilege=${no_access_priv}  2
+#
+#    Enable IPMI User And Verify  ${random_userid}
+#
+#    # Verify that user is able to run administrator level IPMI command with channel 1.
+#    Verify IPMI Command  ${random_username}  ${valid_password}  Administrator  1
+#
+#    # Verify that user is unable to run IPMI command with channel 2.
+#    Run IPMI Standard Command  sel info 2  expected_rc=${1}  U=${random_username}  P=${valid_password}
 
-    ${random_userid}  ${random_username}=  Create Random IPMI User
-    Run IPMI Standard Command
-    ...  user set password ${random_userid} ${valid_password}
 
-    # Set operator privilege for newly created user with channel 1.
-    Set Channel Access  ${random_userid}  ipmi=on privilege=${operator_priv}  1
-
-    # Set user privilege for newly created user with channel 2.
-    Set Channel Access  ${random_userid}  ipmi=on privilege=${user_priv}  2
-
-    Enable IPMI User And Verify  ${random_userid}
-
-    # Verify that user is able to run operator level IPMI command with channel 1.
-    Verify IPMI Command  ${random_username}  ${valid_password}  Operator  1
-
-    # Verify that user is able to run user level IPMI command with channel 2.
-    Verify IPMI Command  ${random_username}  ${valid_password}  User  2
+#Verify Operator And User Privilege For Different Channels
+#    [Documentation]  Set operator and user privilege for different channels and verify.
+#    [Tags]  Verify_Operator_And_User_Privilege_For_Different_Channels
+#
+#    ${random_userid}  ${random_username}=  Create Random IPMI User
+#    Run IPMI Standard Command
+#    ...  user set password ${random_userid} ${valid_password}
+#
+#    # Set operator privilege for newly created user with channel 1.
+#    Set Channel Access  ${random_userid}  ipmi=on privilege=${operator_priv}  1
+#
+#    # Set user privilege for newly created user with channel 2.
+#    Set Channel Access  ${random_userid}  ipmi=on privilege=${user_priv}  2
+#
+#    Enable IPMI User And Verify  ${random_userid}
+#
+#    # Verify that user is able to run operator level IPMI command with channel 1.
+#    Verify IPMI Command  ${random_username}  ${valid_password}  Operator  1
+#
+#    # Verify that user is able to run user level IPMI command with channel 2.
+#    Verify IPMI Command  ${random_username}  ${valid_password}  User  2
 
 
 Verify Setting IPMI User With Max Password Length
