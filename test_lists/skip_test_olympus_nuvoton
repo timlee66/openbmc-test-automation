@@ -47,6 +47,9 @@
 -e Verify_Setting_IPMI_Root_User_With_New_Name
 -e Verify_IPMI_Root_User_Password_Change
 
+# coredump service is not supported
+-e Verify_Core_Dump_Size
+
 -v MACHINE_TYPE:olympus-nuvoton
 -v log_file_path:log.txt
 -v FORCE_UPDATE:1

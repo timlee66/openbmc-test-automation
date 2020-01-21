@@ -79,7 +79,7 @@ VALID_BOOT_STATES = {
             "xyz.openbmc_project.State.Chassis.PowerState.On",
             "xyz.openbmc_project.State.Host.HostState.Running",
             "xyz.openbmc_project.State.Boot.Progress.ProgressStages.OSStart",
-            "xyz.openbmc_project.State.OperatingSystem.Status.OSStatus.BootComplete"
+            "xyz.openbmc_project.State.OperatingSystem.Status.OSStatus.Standby"
         ),
     },
     'ResetReload':  # Valid state BMC reset reload when host is booted.
