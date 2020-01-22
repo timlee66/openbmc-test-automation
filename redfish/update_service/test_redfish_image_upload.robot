@@ -20,6 +20,7 @@ Resource               ../../lib/connection_client.robot
 Resource               ../../lib/rest_client.robot
 Resource               ../../lib/openbmc_ffdc.robot
 Resource               ../../lib/bmc_redfish_resource.robot
+Resource               ../../lib/redfish_code_update_utils.robot
 Resource               ../../lib/code_update_utils.robot
 Library                OperatingSystem
 Library                ../../lib/code_update_utils.py
@@ -162,12 +163,24 @@ Redfish TFTP Bad Firmware Update
     Sleep  60s
     ${image_version}=  Get Image Version From SFTP Server  ${SFTP_SERVER}  ${SFTP_USER}  ${SFTP_PATH}/${image_file_name}
     Return From Keyword If  '${image_version}' == '${EMPTY}'
-    # Wait for image tar file to download complete.
-    ${image_id}=  Wait Until Keyword Succeeds  60 sec  10 sec  Get Latest Image ID
+    Rprint Vars  ${image_version}
+    ${image_info}=  Get Software Inventory State By Version  ${image_version}
+    ${image_id}=  Get Image Id By Image Info  ${image_info}
+    Return From Keyword If  '${image_id}' == '${EMPTY}'
     Rprint Vars  image_id
+
+    # Wait for image tar file to download complete.
+    #${image_id}=  Wait Until Keyword Succeeds  60 sec  0.1 sec  Get Latest Image ID
+   # Rprint Vars  image_id
 
     Check Image Update Progress State
     ...  match_state='Updating', 'Disabled'  image_id=${image_id}
 
     Delete Software Object
     ...  /xyz/openbmc_project/software/${image_id}
+
+Get Image Id By Image Info
+    [Documentation]  Get image ID from image_info.
+    [Arguments]  ${image_info}
+
+    [Return]  ${image_info["image_id"]}
