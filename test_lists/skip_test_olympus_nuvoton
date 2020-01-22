@@ -50,6 +50,9 @@
 # coredump service is not supported
 -e Verify_Core_Dump_Size
 
+# No alt flash
+-e Test_BMC_Alt_Side_Mirroring
+
 -v MACHINE_TYPE:olympus-nuvoton
 -v log_file_path:log.txt
 -v FORCE_UPDATE:1
