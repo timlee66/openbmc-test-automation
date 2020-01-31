@@ -29,7 +29,7 @@ Library                ../../lib/gen_robot_valid.py
 Suite Setup            Suite Setup Execution
 Suite Teardown         Redfish.Logout
 Test Setup             Printn
-Test Teardown          FFDC On Test Case Fail
+#Test Teardown          FFDC On Test Case Fail
 
 Force Tags  Upload_Test
 
@@ -82,7 +82,7 @@ Redfish TFTP Failure to Upload BMC Image With Bad Manifest
     [Template]  Redfish TFTP Bad Firmware Update
 
     # Image File Name
-    bmc_bad_manifest.static.mtd.tar
+    bmc_bad_manifest.static.mtd.tar  ${TRUE}
 
 
 Redfish TFTP Failure to Upload Empty BMC Image
@@ -91,7 +91,7 @@ Redfish TFTP Failure to Upload Empty BMC Image
     [Template]  Redfish TFTP Bad Firmware Update
 
     # Image File Name
-    bmc_nokernel_image.static.mtd.tar
+    bmc_nokernel_image.static.mtd.tar  ${FALSE}
 
 Redfish TFTP Failure to Upload Host Image With Bad Manifest
     [Documentation]  Upload a BIOS firmware with a bad MANIFEST file via TFTP.
@@ -99,7 +99,7 @@ Redfish TFTP Failure to Upload Host Image With Bad Manifest
     [Template]  Redfish TFTP Bad Firmware Update
 
     # Image File Name
-    bios_bad_manifest.bios.tar
+    bios_bad_manifest.bios.tar  ${TRUE}
 
 Redfish TFTP Failure to Upload Empty Host Image
     [Documentation]  Upload a BIOS firmware with no kernel Image via TFTP.
@@ -107,7 +107,7 @@ Redfish TFTP Failure to Upload Empty Host Image
     [Template]  Redfish TFTP Bad Firmware Update
 
     # Image File Name
-    bios_no_image.bios.tar
+    bios_no_image.bios.tar  ${FALSE}
 
 *** Keywords ***
 
@@ -151,7 +151,7 @@ Redfish Bad Firmware Update
 
 Redfish TFTP Bad Firmware Update
     [Documentation]  Redfish bad firmware update via TFTP.
-    [Arguments]  ${image_file_name}
+    [Arguments]  ${image_file_name}  ${empty_info}
 
     # Description of argument(s):
     # image_file_name  The file name of the image.
@@ -165,6 +165,11 @@ Redfish TFTP Bad Firmware Update
     Return From Keyword If  '${image_version}' == '${EMPTY}'
     Rprint Vars  ${image_version}
     ${image_info}=  Get Software Inventory State By Version  ${image_version}
+    Run Keyword If  '${empty_info}' == '${TRUE}'
+    ...    Return From Keyword If  '${image_info}' == '${EMPTY}'
+    ...  ELSE
+    ...    Should Not Be Empty  ${image_info}
+
     ${image_id}=  Get Image Id By Image Info  ${image_info}
     Return From Keyword If  '${image_id}' == '${EMPTY}'
     Rprint Vars  image_id
