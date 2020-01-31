@@ -20,10 +20,10 @@ Test Teardown    Test Teardown Execution
 *** Variables ****
 
 ${over_max_power}       4001
-${max_power}            3050
-${mid_power}            1950
-${min_power}            600
-${below_min_power}      499
+${max_power}            1000
+${mid_power}            500
+${min_power}            3
+${below_min_power}      2
 ${zero_power}           0
 #  The power limits are documented in
 #  open-power/witherspoon-xml/master/witherspoon.xml.
@@ -53,7 +53,7 @@ Escale Power Setting Via REST And Verify
     [Tags]  Escale_Power_Setting_Via_REST_And_Verify
 
     # A convenient power level bewtwwn maximum and minimum.
-    ${test_power}=  Set Variable  1700
+    ${test_power}=  Set Variable  700
 
     # Set the power limit via REST.
     Set DCMI Power Limit Via REST  ${test_power}
@@ -69,7 +69,7 @@ Escale Power Setting Via IPMI And Verify
     [Tags]  Escale_Power_Setting_Via_IPMI_And_Verify
 
     # A convenient power level bewtwwn maximum and minimum.
-    ${test_power}=  Set Variable  2200
+    ${test_power}=  Set Variable  200
 
     # Set DCMI Power via IPMI.
     Set DCMI Power Limit And Verify  ${test_power}
