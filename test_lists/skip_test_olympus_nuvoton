@@ -53,6 +53,21 @@
 # No alt flash
 -e Test_BMC_Alt_Side_Mirroring
 
+-e Verify_IPMI_Root_User_Password_Change
+-e Verify_Administrator_And_No_Access_Privilege_For_Different_Channels
+-e Verify_Operator_And_User_Privilege_For_Different_Channels
+
+# TODO: Configure invalid IP address use cases.
+-e Configure_Broadcast_IP
+-e Configure_Multicast_IP
+-e Configure_Loopback_IP
+-e Configure_Network_ID
+# TODO: Invalid gateway address configuration.
+-e Configure_Broadcast_IP_For_Gateway
+-e Configure_Loopback_IP_For_Gateway
+-e Configure_Multicast_IP_For_Gateway
+-e Configure_Network_ID_For_Gateway
+
 -v MACHINE_TYPE:olympus-nuvoton
 -v log_file_path:log.txt
 -v FORCE_UPDATE:1
