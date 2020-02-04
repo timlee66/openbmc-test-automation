@@ -53,6 +53,17 @@
 # No alt flash
 -e Test_BMC_Alt_Side_Mirroring
 
+# ibm fan control services are not running
+-e Check_Number_Of_Fans_With_Power_On
+-e Check_Number_Of_Fan_Monitors_With_Power_On
+-e Check_Fans_Running_At_Target_Speed
+-e Check_Fan_Manual_Control
+-e Check_Fan_Speed_Increase_When_One_Disabled
+-e Check_System_Shutdown_Due_To_Fans
+
+# No OCC (On Chip Controller) for test_power_capping.robot
+-e Escale_System_On_And_PL_Enabled
+
 -e Verify_IPMI_Root_User_Password_Change
 -e Verify_Administrator_And_No_Access_Privilege_For_Different_Channels
 -e Verify_Operator_And_User_Privilege_For_Different_Channels

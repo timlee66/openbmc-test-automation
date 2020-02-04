@@ -22,9 +22,9 @@ Test Teardown    Test Teardown Execution
 
 *** Variables ****
 
-${max_power}            3050
-${near_max_power_50}    3000
-${near_max_power_100}   2950
+${max_power}            1000
+${near_max_power_50}    950
+${near_max_power_100}   900
 
 
 
