@@ -15,14 +15,14 @@ Force Tags     Network_Conf_Test
 
 *** Variables ***
 ${test_hostname}           openbmc
-${test_ipv4_addr}          10.7.7.7
+${test_ipv4_addr}          192.168.1.7
 ${test_ipv4_invalid_addr}  0.0.1.a
 ${test_subnet_mask}        255.255.0.0
-${test_gateway}            10.7.7.1
-${broadcast_ip}            10.7.7.255
+${test_gateway}            192.168.1.1
+${broadcast_ip}            192.168.1.255
 ${loopback_ip}             127.0.0.2
 ${multicast_ip}            224.6.6.6
-${out_of_range_ip}         10.7.7.256
+${out_of_range_ip}         192.168.1.256
 
 # Valid netmask is 4 bytes long and has continuos block of 1s.
 # Maximum valid value in each octet is 255 and least value is 0.
@@ -43,11 +43,11 @@ ${less_octet_ip}           10.3.36
 # For the address 10.6.6.6, the 10.6.6.0 portion describes the
 # network ID and the 6 describe the host.
 
-${network_id}              10.7.7.0
+${network_id}              192.168.1.0
 ${hex_ip}                  0xa.0xb.0xc.0xd
 ${negative_ip}             10.-7.-7.7
 ${hex_ip}                  0xa.0xb.0xc.0xd
-@{static_name_servers}     10.5.5.5
+@{static_name_servers}     192.5.5.5
 @{null_value}              null
 @{empty_dictionary}        {}
 @{string_value}            aa.bb.cc.dd
@@ -177,15 +177,15 @@ Add Fourth Octet Threshold IP And Verify
     [Documentation]  Add fourth octet threshold IP and verify.
     [Tags]  Add_Fourth_Octet_Threshold_IP_And_Verify
 
-     Add IP Address  10.7.7.254  ${test_subnet_mask}  ${test_gateway}
-     Delete IP Address  10.7.7.254
+     Add IP Address  192.168.1.254  ${test_subnet_mask}  ${test_gateway}
+     Delete IP Address  192.168.1.254
 
 Add Fourth Octet Lowest IP And Verify
     [Documentation]  Add fourth octet lowest IP and verify.
     [Tags]  Add_Fourth_Octet_Lowest_IP_And_Verify
 
-     Add IP Address  10.7.7.1  ${test_subnet_mask}  ${test_gateway}
-     Delete IP Address  10.7.7.1
+     Add IP Address  192.168.1.1  ${test_subnet_mask}  ${test_gateway}
+     Delete IP Address  192.168.1.1
 
 Add Third Octet Threshold IP And Verify
     [Documentation]  Add third octet threshold IP and verify.
@@ -515,10 +515,10 @@ Add IP Address
     ...  ${valid_status_codes}=${HTTP_OK}
 
     # Description of argument(s):
-    # ip                  IP address to be added (e.g. "10.7.7.7").
+    # ip                  IP address to be added (e.g. "192.168.1.7").
     # subnet_mask         Subnet mask for the IP to be added
     #                     (e.g. "255.255.0.0").
-    # gateway             Gateway for the IP to be added (e.g. "10.7.7.1").
+    # gateway             Gateway for the IP to be added (e.g. "192.168.1.1").
     # valid_status_codes  Expected return code from patch operation
     #                     (e.g. "200").  See prolog of rest_request
     #                     method in redfish_plut.py for details.
@@ -556,7 +556,7 @@ Delete IP Address
     [Arguments]  ${ip}  ${valid_status_codes}=${HTTP_OK}
 
     # Description of argument(s):
-    # ip                  IP address to be deleted (e.g. "10.7.7.7").
+    # ip                  IP address to be deleted (e.g. "192.168.1.7").
     # valid_status_codes  Expected return code from patch operation
     #                     (e.g. "200").  See prolog of rest_request
     #                     method in redfish_plut.py for details.
