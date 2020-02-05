@@ -34,7 +34,7 @@ ${out_of_range_netmask}    255.256.255.0
 ${more_byte_netmask}       255.255.255.0.0
 ${less_byte_netmask}       255.255.255
 ${threshold_netmask}       255.255.255.255
-${lowest_netmask}          128.0.0.0
+${lowest_netmask}          255.0.0.0
 
 # There will be 4 octets in IP address (e.g. xx.xx.xx.xx)
 # but trying to configure xx.xx.xx
