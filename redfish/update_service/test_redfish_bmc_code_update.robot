@@ -78,10 +78,9 @@ Redfish Update Firmware
     ${state}=  Get Pre Reboot State
     Rprint Vars  state
     Set ApplyTime  policy=${apply_Time}
-    ${get_json_file}=  OperatingSystem.Get File  lib/applytime_table.json
-    ${post_code_update_actions}=  Evaluate  json.loads('''${get_json_file}''')  json
-    Redfish Upload Image And Check Progress State
-    Run Key  ${post_code_update_actions['bmc']['${apply_time}']}
+    Redfish Upload Image  /redfish/v1/UpdateService  ${image_file_path}
+    Reboot BMC And Verify BMC Image
+    ...  ${apply_time}  start_boot_seconds=${state['epoch_seconds']}  image_file_path=${image_file_path}
     Redfish.Login
     Verify Get ApplyTime  ${apply_time}
 
