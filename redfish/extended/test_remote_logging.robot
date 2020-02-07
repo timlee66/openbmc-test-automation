@@ -170,7 +170,7 @@ Verfiy BMC Journald Synced To Remote Logging Server
     ...  journalctl --no-pager | grep 'Started Phosphor Dump Manager'
 
     # systemd[1]: Started Phosphor Dump Manager.
-    ${cmd}=  Catenate  SEPARATOR=  egrep '${bmc_hostname}.*Started Phosphor Dump Manager' /var/log/syslog
+    ${cmd}=  Catenate  SEPARATOR=  egrep '${bmc_hostname}.*Started Phosphor Dump Manager' /var/log/${bmc_hostname}/syslog
     ${remote_journald}=  Remote Logging Server Execute Command  command=${cmd}
 
     # TODO: rsyslog configuration and time date template to match BMC journald.
@@ -188,7 +188,7 @@ Verify Journald Post BMC Reset
     ${hostname}  ${stderr}  ${rc}=  BMC Execute Command  hostname
     OBMC Reboot (off)
 
-    ${cmd}=  Catenate  grep ${hostname} /var/log/syslog |
+    ${cmd}=  Catenate  grep ${hostname} /var/log/${bmc_hostname}/syslog |
     ...  egrep '${BMC_STOP_MSG}|${BMC_START_MSG}|${BMC_BOOT_MSG}'
     ${remote_journald}=  Remote Logging Server Execute Command  command=${cmd}
 
@@ -246,7 +246,7 @@ Audit BMC SSH Login And Remote Logging
     ${bmc_journald}=  Stop Journal Log
     @{ssh_entry}=  Split To Lines  ${bmc_journald}
 
-    ${cmd}=  Catenate  SEPARATOR=  egrep -E '*${bmc_hostname}.*${login_footprint}' /var/log/syslog
+    ${cmd}=  Catenate  SEPARATOR=  egrep -E '*${bmc_hostname}.*${login_footprint}' /var/log/${bmc_hostname}/syslog
 
     ${remote_journald}=  Remote Logging Server Execute Command  command=${cmd}
 
@@ -295,7 +295,7 @@ Boot Host And Verify Data Is Synced To Remote Server
     Run Keyword And Ignore Error  Redfish Power On
     ${bmc_journald}=  Stop Journal Log
 
-    ${cmd}=  Catenate  SEPARATOR=  egrep -a '${bmc_hostname}' /var/log/syslog
+    ${cmd}=  Catenate  SEPARATOR=  egrep -a '${bmc_hostname}' /var/log/${bmc_hostname}/syslog
     ${remote_journald}=  Remote Logging Server Execute Command  command=${cmd}
 
     @{lines}=  Split To Lines  ${bmc_journald}
