@@ -10,6 +10,7 @@ Library        Collections
 
 Test Setup     Test Setup Execution
 Test Teardown  Test Teardown Execution
+Suite Teardown  Suite Teardown Execution
 
 Force Tags     Network_Conf_Test
 
@@ -718,3 +719,10 @@ DNS Test Setup Execution
     Rprint Vars  original_nameservers
     # Set suite variables to trigger restoration during teardown.
     Set Suite Variable  ${original_nameservers}
+
+Suite Teardown Execution
+    [Documentation]  Do the suite level teardown.
+
+    Redfish.Login
+
+    OBMC Reboot (off)
