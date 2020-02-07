@@ -36,13 +36,13 @@ Gard Operations On OS
 Putscom Operations On OS
     [Documentation]  Executes putscom command on OS with the given
     ...              input arguments.
-    [Arguments]      ${proc_chip_id}  ${fru}  ${address}
+    [Arguments]      ${proc_chip_id}  ${fir_address}  ${value}
     # Description of arguments:
     # proc_chip_id        Processor ID (e.g '0', '8').
-    # fru            FRU value (e.g. 2011400).
-    # address        Chip address (e.g 4000000000000000).
+    # fir_address         FIR (Fault isolation register) value (e.g. 2011400).
+    # value               (e.g 4000000000000000).
 
-    ${cmd}=  Catenate  putscom -c 0x${proc_chip_id} 0x${fru} 0x${address}
+    ${cmd}=  Catenate  putscom -c 0x${proc_chip_id} 0x${fir_address} 0x${value}
     Start Command  ${cmd}
 
 Get ProcChipId From OS
@@ -61,8 +61,8 @@ Get ProcChipId From OS
 
     ${proc_ids}=  Split String  ${proc_chip_id}
     ${proc_id}=  Run Keyword If  '${master_proc_chip}' == 'True'
-    \  ...  Get From List  ${proc_ids}  1
-    \  ...  ELSE  Get From List  ${proc_ids}  0
+    ...  Get From List  ${proc_ids}  1
+    ...    ELSE  Get From List  ${proc_ids}  0
 
     # Example output:
     # 00000008
@@ -85,13 +85,13 @@ Get Core IDs From OS
 FIR Address Translation Through HOST
     [Documentation]  Do FIR address translation through host for given FIR,
     ...              core value & target type.
-    [Arguments]  ${fir}  ${core_id}  ${target_type}
+    [Arguments]  ${fir_address}  ${core_id}  ${target_type}
     # Description of argument(s):
-    # fir          FIR (Fault isolation register) value (e.g. 2011400).
-    # core_id      Core ID (e.g. 9).
-    # target_type  Target type (e.g. 'EQ', 'EX', 'C').
+    # fir_address     FIR (Fault isolation register) value (e.g. 2011400).
+    # core_id         Core ID (e.g. 9).
+    # target_type     Target type (e.g. 'EQ', 'EX', 'C').
 
-    ${cmd}=  Catenate  set -o pipefail ; ${addr_translation_file_path} ${fir}
+    ${cmd}=  Catenate  set -o pipefail ; ${addr_translation_file_path} ${fir_address}
     ...  ${core_id} | grep -i ${target_type}
     ${output}  ${stderr}  ${rc}=  OS Execute Command  ${cmd}
     ${translated_addr}=  Split String  ${output}  :${SPACE}0x
@@ -106,11 +106,11 @@ Inject Error Through HOST
     ...              1. Boot To HOST.
     ...              2. Clear any existing gard records.
     ...              3. Inject Error on processor.
-    [Arguments]      ${fir}  ${chip_address}  ${threshold_limit}
+    [Arguments]      ${fir_address}  ${value}  ${threshold_limit}
     ...  ${master_proc_chip}=True
     # Description of argument(s):
-    # fir                 FIR (Fault isolation register) value (e.g. 2011400).
-    # chip_address        chip address (e.g 2000000000000000).
+    # fir_address         FIR (Fault isolation register) value (e.g. 2011400).
+    # value               (e.g 2000000000000000).
     # threshold_limit     Threshold limit (e.g 1, 5, 32).
     # master_proc_chip    Processor chip type (True' or 'False').
 
@@ -123,11 +123,13 @@ Inject Error Through HOST
     ${proc_chip_id}=  Get ProcChipId From OS  Processor  ${master_proc_chip}
 
     ${threshold_limit}=  Convert To Integer  ${threshold_limit}
-    :FOR  ${count}  IN RANGE  ${threshold_limit}
-    \  Run Keyword  Putscom Operations On OS  ${proc_chip_id}  ${fir}
-    ...  ${chip_address}
-    # Adding delay after each error injection.
-    \  Sleep  10s
+    FOR  ${count}  IN RANGE  ${threshold_limit}
+        Run Keyword  Putscom Operations On OS  ${proc_chip_id}  ${fir_address}
+        ...  ${value}
+        # Adding delay after each error injection.
+        Sleep  10s
+    END
+
     # Adding delay to get error log after error injection.
     Sleep  120s
 
@@ -171,19 +173,6 @@ Enable Opal-PRD Service On HOST
     ${opal_prd_state}=  Is Opal-PRD Service Enabled
     Should Contain  ${opal_prd_state}  enabled
 
-BMC Putscom
-    [Documentation]  Executes putscom command through BMC.
-
-    [Arguments]      ${proc_chip_id}  ${fru}  ${chip_address}
-
-    # Description of argument(s):
-    # proc_chip_id        Processor ID (e.g '0', '8').
-    # fru                 FRU (field replaceable unit) (e.g. '2011400').
-    # chip_address        Chip address (e.g. '4000000000000000').
-
-    ${cmd}=  Catenate  pdbg -d p9w -p${proc_chip_id} putscom 0x${fru} 0x${chip_address}
-
-    BMC Execute Command  ${cmd}
 
 Inject Error Through BMC
     [Documentation]  Inject checkstop on multiple targets like
@@ -192,11 +181,11 @@ Inject Error Through BMC
     ...              1. Boot To HOST.
     ...              2. Clear any existing gard records.
     ...              3. Inject Error on processor.
-    [Arguments]      ${fir}  ${chip_address}  ${threshold_limit}
+    [Arguments]      ${fir_address}  ${value}  ${threshold_limit}
     ...  ${master_proc_chip}=True
     # Description of argument(s):
-    # fir                 FIR (Fault isolation register) value (e.g. '2011400').
-    # chip_address        Chip address (e.g. '2000000000000000').
+    # fir_address         FIR (Fault isolation register) value (e.g. '2011400').
+    # value               (e.g. '2000000000000000').
     # threshold_limit     Recoverable error threshold limit (e.g. '1', '5', '32').
 
     Delete Error Logs
@@ -206,11 +195,12 @@ Inject Error Through BMC
     Gard Operations On OS  clear all
 
     ${threshold_limit}=  Convert To Integer  ${threshold_limit}
-    :FOR  ${count}  IN RANGE  ${threshold_limit}
-    \  BMC Putscom  0  ${fir}
-    ...  ${chip_address}
-    # Adding delay after each error injection.
-    \  Sleep  10s
+    FOR  ${count}  IN RANGE  ${threshold_limit}
+        Pdbg  -p0 putscom 0x${fir_address} 0x${value}
+        # Adding delay after each error injection.
+        Sleep  10s
+    END
+
     # Adding delay to get error log after error injection.
     Sleep  120s
 
@@ -223,10 +213,10 @@ Inject Error Through BMC At HOST Boot
     ...              2. Clear any existing gard records.
     ...              3. Power off HOST and Boot.
     ...              4. Inject Error on processor through BMC.
-    [Arguments]      ${fir}  ${chip_address}
+    [Arguments]      ${fir_address}  ${value}
     # Description of argument(s):
-    # fir                 FIR (Fault isolation register) value (e.g. '2011400').
-    # chip_address        Chip address (e.g. '2000000000000000').
+    # fir_address    FIR (Fault isolation register) value (e.g. '2011400').
+    # value          (e.g. '2000000000000000').
 
     Delete Error Logs
 
@@ -244,7 +234,7 @@ Inject Error Through BMC At HOST Boot
     ...  Shell Cmd  grep 'ISTEP *14' ${EXECDIR}/esol.log  quiet=1
     ...  print_output=0  show_err=0  ignore_err=0
 
-    BMC Putscom  0  ${fir}  ${chip_address}
+    Pdbg  -p0 putscom 0x${fir_address} 0x${value}
     # Adding delay to get error log after error injection.
     Sleep  10s
 

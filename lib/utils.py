@@ -4,6 +4,7 @@ r"""
 Companion file to utils.robot.
 """
 
+import os
 import gen_print as gp
 import gen_robot_keyword as grk
 import bmc_ssh_utils as bsu
@@ -16,6 +17,18 @@ try:
 except ImportError:
     pass
 import collections
+
+
+# The code base directory will be one level up from the directory containing this module.
+code_base_dir_path = os.path.dirname(os.path.dirname(__file__)) + os.sep
+
+
+def get_code_base_dir_path():
+    r"""
+    Return the dir path of our code base.
+    """
+
+    return code_base_dir_path
 
 
 def set_power_policy_method():
@@ -360,3 +373,21 @@ def get_os_release_info():
 
     out_buf, stderr, rc = bsu.os_execute_command('cat /etc/os-release')
     return vf.key_value_outbuf_to_dict(out_buf, delim="=", strip='"')
+
+
+def pdbg(option_string, **bsu_options):
+    r"""
+    Run pdbg on the BMC with the caller's option string and return the output.
+
+    Description of argument(s):
+    option_string                   A string of options which are to be processed by the pdbg command.
+    bsu_options                     Options to be passed directly to bmc_execute_command.  See its prolog for
+                                    details.
+    """
+
+    # Default print_out to 1.
+    if 'print_out' not in bsu_options:
+        bsu_options['print_out'] = 1
+
+    stdout, stderr, rc = bsu.bmc_execute_command('pdbg ' + option_string, **bsu_options)
+    return stdout
