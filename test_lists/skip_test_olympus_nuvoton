@@ -64,6 +64,8 @@
 # No OCC (On Chip Controller) for test_power_capping.robot
 -e Escale_System_On_And_PL_Enabled
 
+# Default root password length doesn't meet the PAM module's requirement.
+# There is no additional session-based channel on the Olympus platform to test.
 -e Verify_IPMI_Root_User_Password_Change
 -e Verify_Administrator_And_No_Access_Privilege_For_Different_Channels
 -e Verify_Operator_And_User_Privilege_For_Different_Channels
