@@ -360,6 +360,7 @@ Configure Hexadecimal IP For Gateway
 Get DNS Server And Verify
     [Documentation]  Get DNS server via Redfish and verify.
     [Tags]  Get_DNS_Server_And_Verify
+    [Setup]  DNS Test Setup Execution
 
     Verify CLI and Redfish Nameservers
 
@@ -667,7 +668,13 @@ Verify CLI and Redfish Nameservers
     ...  match those found in /etc/resolv.conf.
 
     ${redfish_nameservers}=  Redfish.Get Attribute  ${REDFISH_NW_ETH0_URI}  StaticNameServers
+    Rqprint Vars  redfish_nameservers
     ${resolve_conf_nameservers}=  CLI Get Nameservers
+    Rqprint Vars  original_resvconf
+    ${cnt}=  Get length  ${original_resvconf}
+    : FOR    ${a}    IN RANGE    0    ${cnt}
+    \    Remove Values From List  ${resolve_conf_nameservers}  ${original_resvconf}[${a}]
+
     Rqprint Vars  redfish_nameservers  resolve_conf_nameservers
 
     # Check that the 2 lists are equivalent.
@@ -692,6 +699,8 @@ Configure Static Name Servers
     # Patch operation takes 1 to 3 seconds to set new value.
     Sleep  3s
 
+    Rqprint Vars  valid_status_codes
+
     # Check if newly added DNS server is configured on BMC.
     ${cli_nameservers}=  CLI Get Nameservers
     ${cmd_status}=  Run Keyword And Return Status
@@ -708,6 +717,11 @@ Delete Static Name Servers
 
     # Check if all name servers deleted on BMC.
     ${nameservers}=  CLI Get Nameservers
+    Rqprint Vars  original_resvconf
+    ${cnt}=  Get length  ${original_resvconf}
+    : FOR    ${a}    IN RANGE    0    ${cnt}
+    \    Remove Values From List  ${nameservers}  ${original_resvconf}[${a}]
+
     Should Be Empty  ${nameservers}
 
 DNS Test Setup Execution
@@ -715,6 +729,9 @@ DNS Test Setup Execution
 
     Redfish.Login
 
+    ${original_resvconf}=  CLI Get Nameservers
+    Rprint Vars  original_resvconf
+    Set Suite Variable  ${original_resvconf}
     ${original_nameservers}=  Redfish.Get Attribute  ${REDFISH_NW_ETH0_URI}  StaticNameServers
     Rprint Vars  original_nameservers
     # Set suite variables to trigger restoration during teardown.
