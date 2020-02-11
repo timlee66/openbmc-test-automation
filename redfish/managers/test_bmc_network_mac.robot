@@ -149,6 +149,8 @@ Configure MAC Settings
     # After any modification on network interface, BMC restarts network
     # module, wait until it is reachable.
 
+    Sleep  10
+
     Wait Until Keyword Succeeds  ${NETWORK_TIMEOUT}  ${NETWORK_RETRY_TIME}
     ...  redfish.Get  ${REDFISH_NW_ETH0_URI}
 
