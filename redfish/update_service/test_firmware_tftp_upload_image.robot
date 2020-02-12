@@ -21,7 +21,7 @@ Library          ../../lib/gen_robot_valid.py
 Library          ../../lib/tftp_update_utils.py
 
 Suite Setup      Suite Setup Execution
-Suite Teardown   Redfish.Logout
+Suite Teardown   Suite Teardown Execution
 Test Setup       Run Keywords  Redfish Power Off  stack_mode=skip  quiet=1  AND  Redfish.Login
 Test Teardown    FFDC On Test Case Fail
 
@@ -182,3 +182,8 @@ Reboot And Wait For BMC Standby
     ...    Redfish OBMC Reboot (off)
     ...  ELSE
     ...    Wait For Reboot  start_boot_seconds=${start_boot_seconds}
+
+Suite Teardown Execution
+    [Documentation]  Do the suite level teardown.
+
+    OBMC Reboot (off)
