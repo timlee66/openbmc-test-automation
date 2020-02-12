@@ -30,8 +30,10 @@ ${BMC_STOP_MSG}          Stopping Network IPMI daemon
 ${BMC_START_MSG}         Starting Flush Journal to Persistent Storage
 ${BMC_BOOT_MSG}          Startup finished in
 ${BMC_SYSLOG_REGEX}      dropbear|vrm-control.sh
-${RSYSLOG_REGEX}         start|exiting on signal 15|there are no active actions configured
+${RSYSLOG_REGEX}         start|exiting on signal 15|there are no active actions configured|Succeeded.
 ${RSYSLOG_RETRY_REGEX}   suspended
+${IMJOURNAL_REGEX}       journal reloaded...|No statefile exists,|rate-limiting
+${RSYSLOG_RETRY_REGEX2}  suspended|resumed|Network is unreachable
 ${valid_password}        0penBmc1
 ${max_password_length}   20
 
@@ -266,7 +268,7 @@ Verify Rsyslog Does Not Log On BMC
     # rsyslogd[3364]:
     # [origin software="rsyslogd" swVersion="8.29.0" x-pid="3364" x-info="http://www.rsyslog.com"] start
     ${bmc_journald}  ${stderr}  ${rc}=  BMC Execute Command
-    ...  journalctl -b --no-pager | egrep 'rsyslog' | egrep -Ev '${RSYSLOG_REGEX}|${RSYSLOG_RETRY_REGEX}'
+    ...  journalctl -b --no-pager | egrep 'rsyslog' | egrep -Ev '${RSYSLOG_REGEX}|${RSYSLOG_RETRY_REGEX2}|${IMJOURNAL_REGEX}'
     ...  ignore_err=${1}
 
     Should Be Empty  ${bmc_journald}

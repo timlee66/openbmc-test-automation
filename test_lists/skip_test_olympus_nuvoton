@@ -64,6 +64,9 @@
 # No OCC (On Chip Controller) for test_power_capping.robot
 -e Escale_System_On_And_PL_Enabled
 
+# REST Logging feature is not supported
+-e Verify_REST_Logging_On_BMC_Journal_When_Enabled
+
 # Default root password length doesn't meet the PAM module's requirement.
 # There is no additional session-based channel on the Olympus platform to test.
 -e Verify_IPMI_Root_User_Password_Change
