@@ -11,8 +11,8 @@ Test Teardown       FFDC On Test Case Fail
 
 *** Variables ***
 
-${BMC_SW_PATH}   ${HOST_INVENTORY_URI}system/chassis/motherboard/boxelder/bmc
-${HOST_SW_PATH}  ${HOST_INVENTORY_URI}system/chassis
+${BMC_SW_PATH}   ${HOST_INVENTORY_URI}system/chassis/motherboard/management_card/bmc
+${HOST_SW_PATH}  ${HOST_INVENTORY_URI}system
 
 *** Test Cases ***
 
@@ -27,7 +27,7 @@ Verify Software Purposes
     \  ${object}=  Read Properties  ${uri}
     \  Continue For Loop If  not 'Purpose' in ${object}
     \  Should Contain Any  &{object}[Purpose]  ${VERSION_PURPOSE_HOST}
-    ...  ${VERSION_PURPOSE_BMC}
+    ...  ${VERSION_PURPOSE_BMC}  ${VERSION_PURPOSE_ME}
 
 
 BMC Software Hex ID
@@ -211,7 +211,7 @@ Verify Inventory Association
     #    ]
     # },
 
-    ${sw_attr_data}=  Read Attribute  ${software_path}  associations
+    ${sw_attr_data}=  Read Attribute  ${software_path}  Associations
     List Should Contain Value  @{sw_attr_data}  ${assoiation_path}
 
     # Verify the inventory path in software manager entry.
