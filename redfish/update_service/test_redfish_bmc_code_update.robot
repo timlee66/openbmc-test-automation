@@ -22,7 +22,7 @@ Library                  ../../lib/tftp_update_utils.py
 Library                  ../../lib/gen_robot_keyword.py
 
 Suite Setup              Suite Setup Execution
-Suite Teardown           Redfish.Logout
+Suite Teardown           Suite Teardown Execution
 Test Setup               Printn
 Test Teardown            FFDC On Test Case Fail
 
@@ -135,3 +135,8 @@ Get Image Id By Image Info
     [Arguments]  ${image_info}
 
     [Return]  ${image_info["image_id"]}
+
+Suite Teardown Execution
+    [Documentation]  Do the suite level teardown.
+
+    OBMC Reboot (off)
