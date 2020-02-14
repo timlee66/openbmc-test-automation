@@ -148,9 +148,9 @@ Verify Enable NTP
     [Teardown]  Restore NTP Mode
     [Tags]  Verify_Enable_NTP
 
-    ${original_ntp}=  Redfish.Get Attribute  ${REDFISH_NW_PROTOCOL_URI}  NTP
-    Set Suite Variable  ${original_ntp}
-    Rprint Vars  original_ntp
+    #${original_ntp}=  Redfish.Get Attribute  ${REDFISH_NW_PROTOCOL_URI}  NTP
+    #Set Suite Variable  ${original_ntp}
+    #Rprint Vars  original_ntp
     # The following patch command should set the ["NTP"]["ProtocolEnabled"] property to "True".
     Redfish.Patch  ${REDFISH_NW_PROTOCOL_URI}  body={'NTP':{'ProtocolEnabled': ${True}}}
     ...  valid_status_codes=[${HTTP_OK}, ${HTTP_NO_CONTENT}]
@@ -216,7 +216,7 @@ Restore NTP Mode
     Return From Keyword If  &{original_ntp} == &{EMPTY}
     Print Timen  Restore NTP Mode.
     Redfish.Patch  ${REDFISH_NW_PROTOCOL_URI}
-    ...  body={'NTP':{'ProtocolEnabled': ${original_ntp["ProtocolEnabled"]}}}
+    ...  body={'NTP':&{original_ntp}}
     ...  valid_status_codes=[${HTTP_OK}, ${HTTP_NO_CONTENT}]
 
 
@@ -225,13 +225,17 @@ Suite Setup Execution
 
     Printn
     Redfish.Login
+
+    ${original_ntp}=  Redfish.Get Attribute  ${REDFISH_NW_PROTOCOL_URI}  NTP
+    Set Suite Variable  ${original_ntp}
+    Rprint Vars  original_ntp
     Rest Set Time Owner
 
 Suite Teardown Execution
     [Documentation]  Do the suite level teardown.
 
-    Redfish.Patch  ${REDFISH_NW_PROTOCOL_URI}
-    ...  body={'NTP':{'NTPServers': ['${EMPTY}', '${EMPTY}']}}
-    ...  valid_status_codes=[${HTTP_OK}, ${HTTP_NO_CONTENT}]
-    Rest Set Time Owner
+    #Redfish.Patch  ${REDFISH_NW_PROTOCOL_URI}
+    #...  body={'NTP':{'NTPServers': ['${EMPTY}', '${EMPTY}']}}
+    #...  valid_status_codes=[${HTTP_OK}, ${HTTP_NO_CONTENT}]
+    #Rest Set Time Owner
     Redfish.Logout
