@@ -67,6 +67,9 @@
 # REST Logging feature is not supported
 -e Verify_REST_Logging_On_BMC_Journal_When_Enabled
 
+# skip tests related to ESEL
+-e Test_BMC_Websocket_ESEL_Interface
+
 # Default root password length doesn't meet the PAM module's requirement.
 # There is no additional session-based channel on the Olympus platform to test.
 -e Verify_IPMI_Root_User_Password_Change
