@@ -77,6 +77,45 @@ Verify CA Certificate Install
     CA           Empty Certificate  error
 
 
+Verify Maximum CA Certificate Install
+    [Documentation]  Verify maximum CA certificate install.
+    [Tags]  Verify_Maximum_CA_Certificate_Install
+    [Teardown]  Run Keywords  FFDC On Test Case Fail  AND  Delete All CA Certificate Via Redfish
+
+    # Get CA certificate count from BMC.
+    redfish.Login
+    ${cert_list}=  Redfish_Utils.Get Member List  /redfish/v1/Managers/bmc/Truststore/Certificates
+    ${cert_count}=  Get Length  ${cert_list}
+
+    # Install CA certificate to reach maximum count of 10.
+    FOR  ${INDEX}  IN RANGE  ${cert_count}  10
+      Install And Verify Certificate Via Redfish  CA  Valid Certificate  ok  ${FALSE}
+      ${cert_count}=  Evaluate  ${cert_count} + 1
+    END
+
+    # Verify error while installing 11th CA certificate.
+    Install And Verify Certificate Via Redfish  CA  Valid Certificate  error  ${FALSE}
+
+
+Verify Error While Uploding Same CA Certificate
+    [Documentation]  Verify error while uploading same CA certificate two times.
+    [Tags]  Verify_Error_While_Uploding_Same_CA_Certificate
+
+    # Create certificate file for uploading.
+    ${cert_file_path}=  Generate Certificate File Via Openssl  Valid Certificate  365
+    ${bytes}=  OperatingSystem.Get Binary File  ${cert_file_path}
+    ${file_data}=  Decode Bytes To String  ${bytes}  UTF-8
+
+    # Install CA certificate.
+    Install Certificate File On BMC  ${REDFISH_CA_CERTIFICATE_URI}  ok  data=${file_data}
+
+    # Adding delay after certificate installation.
+    Sleep  30s
+
+    # Check error while uploading same certificate.
+    Install Certificate File On BMC  ${REDFISH_CA_CERTIFICATE_URI}  error  data=${file_data}
+
+
 Verify Server Certificate View Via Openssl
     [Documentation]  Verify server certificate via openssl command.
     [Tags]  Verify_Server_Certificate_View_Via_Openssl
@@ -147,7 +186,7 @@ Verify CSR Generation For Client Certificate With Invalid Value
 
 Install And Verify Certificate Via Redfish
     [Documentation]  Install and verify certificate using Redfish.
-    [Arguments]  ${cert_type}  ${cert_format}  ${expected_status}
+    [Arguments]  ${cert_type}  ${cert_format}  ${expected_status}  ${delete_cert}=${True}
 
     # Description of argument(s):
     # cert_type           Certificate type (e.g. "Client" or "CA").
@@ -155,9 +194,13 @@ Install And Verify Certificate Via Redfish
     #                     (e.g. "Valid_Certificate_Valid_Privatekey").
     # expected_status     Expected status of certificate replace Redfish
     #                     request (i.e. "ok" or "error").
+    # delete_cert         Certificate will be deleted before installing if this True.
 
     redfish.Login
-    Delete Certificate Via BMC CLI  ${cert_type}
+    Run Keyword If  '${cert_type}' == 'CA' and '${delete_cert}' == '${True}'
+    ...  Delete All CA Certificate Via Redfish
+    ...  ELSE IF  '${cert_type}' == 'Client' and '${delete_cert}' == '${True}'
+    ...  Delete Certificate Via BMC CLI  ${cert_type}
 
     ${time}=  Set Variable If  '${cert_format}' == 'Expired Certificate'  -10  365
     ${cert_file_path}=  Generate Certificate File Via Openssl  ${cert_format}  ${time}
@@ -179,6 +222,7 @@ Install And Verify Certificate Via Redfish
     ...  ${certificate_uri}/${cert_id}  CertificateString
 
     Run Keyword If  '${expected_status}' == 'ok'  Should Contain  ${cert_file_content}  ${bmc_cert_content}
+    [Return]  ${cert_id}
 
 
 Install Certificate File On BMC
@@ -224,7 +268,7 @@ Replace Certificate Via Redfish
     #                     request (i.e. "ok" or "error").
 
     # Install certificate before replacing client or CA certificate.
-    Run Keyword If  '${cert_type}' == 'Client'
+    ${cert_id}=  Run Keyword If  '${cert_type}' == 'Client'
     ...    Install And Verify Certificate Via Redfish  ${cert_type}  Valid Certificate Valid Privatekey  ok
     ...  ELSE IF  '${cert_type}' == 'CA'
     ...    Install And Verify Certificate Via Redfish  ${cert_type}  Valid Certificate  ok
@@ -240,7 +284,7 @@ Replace Certificate Via Redfish
     ${certificate_uri}=  Set Variable If
     ...  '${cert_type}' == 'Server'  ${REDFISH_HTTPS_CERTIFICATE_URI}/1
     ...  '${cert_type}' == 'Client'  ${REDFISH_LDAP_CERTIFICATE_URI}/1
-    ...  '${cert_type}' == 'CA'  ${REDFISH_CA_CERTIFICATE_URI}/1
+    ...  '${cert_type}' == 'CA'  ${REDFISH_CA_CERTIFICATE_URI}/${cert_id}
 
     ${certificate_dict}=  Create Dictionary  @odata.id=${certificate_uri}
     ${payload}=  Create Dictionary  CertificateString=${file_data}
@@ -321,6 +365,15 @@ Delete Certificate Via BMC CLI
     BMC Execute Command  systemctl daemon-reload
     Wait Until Keyword Succeeds  1 min  10 sec  Redfish.Get  ${certificate_uri}/1
     ...  valid_status_codes=[${HTTP_NOT_FOUND}, ${HTTP_INTERNAL_SERVER_ERROR}]
+
+
+Delete All CA Certificate Via Redfish
+    [Documentation]  Delete all CA certificate via Redfish.
+
+    ${cert_list}=  Redfish_Utils.Get Member List  /redfish/v1/Managers/bmc/Truststore/Certificates
+    FOR  ${cert}  IN  @{cert_list}
+      Redfish.Delete  ${cert}  valid_status_codes=[${HTTP_NO_CONTENT}]
+    END
 
 
 Suite Setup Execution

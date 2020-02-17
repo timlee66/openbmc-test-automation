@@ -18,6 +18,7 @@ Resource                 ../../lib/code_update_utils.robot
 Resource                 ../../lib/dump_utils.robot
 Resource                 ../../lib/logging_utils.robot
 Resource                 ../../lib/redfish_code_update_utils.robot
+Resource                 ../../lib/utils.robot
 Library                  ../../lib/gen_robot_valid.py
 Library                  ../../lib/tftp_update_utils.py
 

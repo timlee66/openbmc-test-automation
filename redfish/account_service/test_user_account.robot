@@ -316,7 +316,7 @@ Test Teardown Execution
     [Documentation]  Do the post test teardown.
 
     FFDC On Test Case Fail
-    Redfish.Logout
+    Run Keyword And Ignore Error  Redfish.Logout
 
 Redfish Create User
     [Documentation]  Redfish create user.
@@ -353,9 +353,6 @@ Redfish Create User
 
     Run Keyword If  ${enabled} == ${False}
     ...  Redfish.Login
-
-    Run Keyword If  '${role_id}' == 'Callback'
-    ...  Run Keywords  Redfish.Logout  AND  Redfish.Login
 
     # Validate Role ID of created user.
     ${role_config}=  Redfish_Utils.Get Attribute

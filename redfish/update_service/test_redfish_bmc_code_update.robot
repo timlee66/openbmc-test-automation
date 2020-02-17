@@ -17,6 +17,7 @@ Resource                 ../../lib/code_update_utils.robot
 Resource                 ../../lib/dump_utils.robot
 Resource                 ../../lib/logging_utils.robot
 Resource                 ../../lib/redfish_code_update_utils.robot
+Resource                 ../../lib/utils.robot
 Library                  ../../lib/gen_robot_valid.py
 Library                  ../../lib/tftp_update_utils.py
 Library                  ../../lib/gen_robot_keyword.py
@@ -75,6 +76,7 @@ Redfish Update Firmware
     # Description of argument(s):
     # policy     ApplyTime allowed values (e.g. "OnReset", "Immediate").
 
+    ${post_code_update_actions}=  Get Post Boot Action
     ${state}=  Get Pre Reboot State
     Rprint Vars  state
     Set ApplyTime  policy=${apply_Time}
@@ -82,6 +84,7 @@ Redfish Update Firmware
     Reboot BMC And Verify BMC Image
     ...  ${apply_time}  start_boot_seconds=${state['epoch_seconds']}  image_file_path=${image_file_path}
     Redfish.Login
+    Redfish Verify BMC Version  ${IMAGE_FILE_PATH}
     Verify Get ApplyTime  ${apply_time}
 
 
@@ -94,6 +97,7 @@ Redfish Multiple Upload Image And Check Progress State
     # IMAGE_FILE_PATH            The path to BMC image file.
     # ALTERNATE_IMAGE_FILE_PATH  The path to alternate BMC image file.
 
+    ${post_code_update_actions}=  Get Post Boot Action
     Valid File Path  ALTERNATE_IMAGE_FILE_PATH
     ${state}=  Get Pre Reboot State
     Rprint Vars  state
@@ -103,16 +107,16 @@ Redfish Multiple Upload Image And Check Progress State
     ${image_version}=  Get Version Tar  ${IMAGE_FILE_PATH}
     Rprint Vars  image_version
     Redfish Upload Image  ${REDFISH_BASE_URI}UpdateService  ${IMAGE_FILE_PATH}
-    Sleep  30s
+    Sleep  60s
     ${image_info}=  Get Software Inventory State By Version  ${image_version}
     ${first_image_id}=  Get Image Id By Image Info  ${image_info}
     Rprint Vars  first_image_id
-    Sleep  5s
+    Sleep  30s
 
     ${image_version}=  Get Version Tar  ${ALTERNATE_IMAGE_FILE_PATH}
     Rprint Vars  image_version
     Redfish Upload Image  ${REDFISH_BASE_URI}UpdateService  ${ALTERNATE_IMAGE_FILE_PATH}
-    Sleep  30s
+    Sleep  60s
     ${image_info}=  Get Software Inventory State By Version  ${image_version}
     ${second_image_id}=  Get Image Id By Image Info  ${image_info}
     Rprint Vars  second_image_id
