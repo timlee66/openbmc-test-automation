@@ -24,7 +24,7 @@ Verify Redfish BMC PowerOn With OCC State
     Redfish Power On
 
     # TODO: Replace OCC state check with redfish property when available.
-    Verify OCC State
+    # Verify OCC State
 
 
 Verify Redfish BMC PowerOn
