@@ -130,10 +130,12 @@ Verify SOL During Boot
     Initiate Host Boot Via External IPMI  wait=${0}
 
     Wait Until Keyword Succeeds  3 mins  15 secs
-    ...  Check IPMI SOL Output Content  Welcome to Hostboot
+    ...  Check IPMI SOL Output Content  Processor Type
+    #...  Check IPMI SOL Output Content  Welcome to Hostboot
 
-    Wait Until Keyword Succeeds  3 mins  15 secs
-    ...  Check IPMI SOL Output Content  ISTEP
+    #Wait Until Keyword Succeeds  3 mins  15 secs
+    #...  Check IPMI SOL Output Content  ISTEP
+    Deactivate SOL Via IPMI
 
     Redfish Hard Power Off
 
@@ -241,10 +243,11 @@ Verify SOL Setting
 
     Activate SOL Via IPMI
     Wait Until Keyword Succeeds  3 mins  15 secs
-    ...  Check IPMI SOL Output Content  Welcome to Hostboot
+    ...  Check IPMI SOL Output Content  Processor Type
+    #...  Check IPMI SOL Output Content  Welcome to Hostboot
 
-    Wait Until Keyword Succeeds  3 mins  15 secs
-    ...  Check IPMI SOL Output Content  ISTEP
+    #Wait Until Keyword Succeeds  3 mins  15 secs
+    #...  Check IPMI SOL Output Content  ISTEP
 
 
 Get SOL Setting

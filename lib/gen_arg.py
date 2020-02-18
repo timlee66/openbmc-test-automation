@@ -289,8 +289,13 @@ if psutil_imported:
 
         optional_dir_path_regex = "(.*/)?"
         cmdline = process.as_dict()['cmdline']
-        return re.match(optional_dir_path_regex + pgm_name + '( |$)', cmdline[0]) \
-            or re.match(optional_dir_path_regex + pgm_name + '( |$)', cmdline[1])
+        if len(cmdline) > 1:
+            return re.match(optional_dir_path_regex + pgm_name + '( |$)', cmdline[0]) \
+                or re.match(optional_dir_path_regex + pgm_name + '( |$)', cmdline[1])
+        elif len(cmdline) > 0:
+            return re.match(optional_dir_path_regex + pgm_name + '( |$)', cmdline[0])
+        else :
+            return False
 
     def select_processes_by_pgm_name(processes, pgm_name):
         r"""
