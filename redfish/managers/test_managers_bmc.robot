@@ -90,7 +90,7 @@ Redfish BMC Manager GracefulRestart When Host Off
     Redfish OBMC Reboot (off)
 
     BMC Execute Command  if [ -f ${test_file_path} ] ; then false ; fi
-    Verify BMC RTC And UTC Time Drift
+    #Verify BMC RTC And UTC Time Drift
 
     # Check for journald persistency post reboot.
     Check For Regex In Journald  ${REBOOT_REGEX}  error_check=${1}
@@ -113,7 +113,7 @@ Redfish BMC Manager GracefulRestart When Host Booted
     Redfish OBMC Reboot (run)
 
     # TODO: Replace OCC state check with redfish property when available.
-    Verify OCC State
+    #Verify OCC State
 
 
 *** Keywords ***
