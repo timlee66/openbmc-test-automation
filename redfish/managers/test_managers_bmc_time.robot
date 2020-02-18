@@ -51,6 +51,7 @@ Verify Set Time Using Redfish
     # Add 3 days to current date.
     ${new_bmc_time}=  Add Time to Date  ${old_bmc_time}  3 Days
     Redfish Set DateTime  ${new_bmc_time}
+    Sleep  5s
     ${cli_bmc_time}=  CLI Get BMC DateTime
     ${time_diff}=  Subtract Date From Date  ${cli_bmc_time}
     ...  ${new_bmc_time}
@@ -68,6 +69,7 @@ Verify Set DateTime With Offset Using Redfish
     [Teardown]  Run Keywords  Redfish Set DateTime  AND  FFDC On Test Case Fail
 
     Redfish Set DateTime  ${date_time_with_offset}
+    Sleep  5s
     ${cli_bmc_time}=  CLI Get BMC DateTime
 
     ${date_time_diff}=  Subtract Date From Date  ${cli_bmc_time}
@@ -107,6 +109,7 @@ Verify DateTime Persists After Reboot
 Verify NTP Server Set
     [Documentation]  Verify NTP server set.
     [Tags]  Verify_NTP_Server_Set
+    [Teardown]  Restore NTP Mode
 
     Redfish.Patch  ${REDFISH_NW_PROTOCOL_URI}  body={'NTP':{'NTPServers': ['${ntp_server_1}', '${ntp_server_2}']}}
     ...  valid_status_codes=[${HTTP_OK}, ${HTTP_NO_CONTENT}]
@@ -120,6 +123,7 @@ Verify NTP Server Set
 Verify NTP Server Value Not Duplicated
     [Documentation]  Verify NTP servers value not same for both primary and secondary server.
     [Tags]  Verify_NTP_Server_Value_Not_Duplicated
+    [Teardown]  Restore NTP Mode
 
     Redfish.Patch  ${REDFISH_NW_PROTOCOL_URI}  body={'NTP':{'NTPServers': ['${ntp_server_1}', '${ntp_server_1}']}}
     ...  valid_status_codes=[${HTTP_OK}, ${HTTP_NO_CONTENT}]
@@ -131,6 +135,7 @@ Verify NTP Server Value Not Duplicated
 Verify NTP Server Setting Persist After BMC Reboot
     [Documentation]  Verify NTP server setting persist after BMC reboot.
     [Tags]  Verify_NTP_Server_Setting_Persist_After_BMC_Reboot
+    [Teardown]  Restore NTP Mode
 
     Redfish.Patch  ${REDFISH_NW_PROTOCOL_URI}  body={'NTP':{'NTPServers': ['${ntp_server_1}', '${ntp_server_2}']}}
     ...  valid_status_codes=[${HTTP_OK}, ${HTTP_NO_CONTENT}]
