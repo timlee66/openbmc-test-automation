@@ -8,6 +8,7 @@ Library        ../../lib/bmc_network_utils.py
 
 Suite Setup    Suite Setup Execution
 Test Teardown  Test Teardown Execution
+Suite Teardown  Suite Teardown Execution
 
 Force Tags     MAC_Test
 
@@ -167,3 +168,9 @@ Configure MAC Settings
     ...      Should Be Equal  ${status}  ${True}
     ...      msg=Not allowing the configuration of a valid MAC.
 
+Suite Teardown Execution
+    [Documentation]  Do the suite level teardown.
+
+    Redfish.Login
+
+    OBMC Reboot (off)
