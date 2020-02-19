@@ -20,7 +20,7 @@ Test BMC Redfish Using Redfish Service Validator
     [Documentation]  Check conformance with a Redfish service interface.
     [Tags]  Test_BMC_Redfish_Using_Redfish_Service_Validator
 
-    Download DMTF Tool  ${rsv_dir_path}  ${rsv_github_url}
+    #Download DMTF Tool  ${rsv_dir_path}  ${rsv_github_url}
 
     ${output}=  Run DMTF Tool  ${rsv_dir_path}  ${command_string}
 
