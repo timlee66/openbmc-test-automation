@@ -35,5 +35,5 @@ Test Setup Execution
     [Documentation]  Do test case setup tasks.
 
     Printn
-    #Download DMTF Tool  ${rsv_dir_path}  ${rsv_github_url}
+    Download DMTF Tool  ${rsv_dir_path}  ${rsv_github_url}
 

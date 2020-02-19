@@ -20,7 +20,7 @@ Test BMC Redfish Using Redfish JsonSchema ResponseValidator
     [Documentation]  Check OpenBMC conformance with JsonSchema files at the DMTF site.
     [Tags]  Test_BMC_Redfish_Using_Redfish_JsonSchema_ResponseValidator
 
-    #Download DMTF Tool  ${rsv_dir_path}  ${rsv_github_url}
+    Download DMTF Tool  ${rsv_dir_path}  ${rsv_github_url}
 
     Redfish.Login
     ${url_list}=  redfish_utils.List Request  /redfish/v1
