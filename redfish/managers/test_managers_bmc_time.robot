@@ -230,7 +230,9 @@ Suite Setup Execution
 
     Printn
     Redfish.Login
+    Redfish Power Off
 
+    Redfish.Login
     ${original_ntp}=  Redfish.Get Attribute  ${REDFISH_NW_PROTOCOL_URI}  NTP
     Set Suite Variable  ${original_ntp}
     Rprint Vars  original_ntp
@@ -243,4 +245,5 @@ Suite Teardown Execution
     #...  body={'NTP':{'NTPServers': ['${EMPTY}', '${EMPTY}']}}
     #...  valid_status_codes=[${HTTP_OK}, ${HTTP_NO_CONTENT}]
     #Rest Set Time Owner
+    Redfish Power On
     Redfish.Logout
