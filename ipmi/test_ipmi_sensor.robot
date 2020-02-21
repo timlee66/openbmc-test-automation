@@ -22,8 +22,8 @@ Verify IPMI Temperature Readings using Redfish
     [Template]  Get Temperature Reading And Verify In Redfish
 
     # command_type  sensor_id  member_id
-    IPMI            pcie       pcie
-    IPMI            ambient    ambient
+    IPMI            inlet       inlet
+    IPMI            bmc_card    bmc_card
 
 
 Verify DCMI Temperature Readings using Redfish
@@ -32,8 +32,8 @@ Verify DCMI Temperature Readings using Redfish
     [Template]  Get Temperature Reading And Verify In Redfish
 
     # command_type  sensor_id  member_id
-    DCMI            pcie       pcie
-    DCMI            ambient    ambient
+    DCMI            inlet       inlet
+    DCMI            bmc_card    bmc_card
 
 
 Test Ambient Temperature Via IPMI
@@ -86,7 +86,7 @@ Test Ambient Temperature Via IPMI
     #"UpperThresholdCritical": 35.0,
     #"UpperThresholdNonCritical": 25.0
 
-    ${ambient_temp_redfish}=  Get Temperature Reading From Redfish  ambient
+    ${ambient_temp_redfish}=  Get Temperature Reading From Redfish  inlet
 
     ${ipmi_redfish_temp_diff}=
     ...  Evaluate  abs(${ambient_temp_redfish} - ${ambient_temp_ipmi})
