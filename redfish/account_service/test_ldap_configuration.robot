@@ -316,7 +316,9 @@ Verify Authorization With Null Privilege
     [Tags]  Verify_LDAP_Authorization_With_Null_Privilege
     [Teardown]  Restore LDAP Privilege
 
-    Update LDAP Config And Verify Set Host Name  ${GROUP_NAME}  ${EMPTY}
+    ${ex_group_name}=  Set Variable If  '${old_ldap_privilege}' == '${EMPTY}'  ${GROUP_NAME}  Invalid_LDAP_Group_Name
+
+    Update LDAP Config And Verify Set Host Name  ${ex_group_name}  ${EMPTY}
     ...  [${HTTP_FORBIDDEN}]
     ...  extra_status_codes=[${HTTP_INTERNAL_SERVER_ERROR}]
 
@@ -327,7 +329,9 @@ Verify Authorization With Invalid Privilege
     [Tags]  Verify_LDAP_Authorization_With_Invalid_Privilege
     [Teardown]  Restore LDAP Privilege
 
-    Update LDAP Config And Verify Set Host Name  ${GROUP_NAME}
+    ${ex_group_name}=  Set Variable If  '${old_ldap_privilege}' == '${EMPTY}'  ${GROUP_NAME}  Invalid_LDAP_Group_Name
+
+    Update LDAP Config And Verify Set Host Name  ${ex_group_name}
     ...  Invalid_Privilege  [${HTTP_FORBIDDEN}]
     ...  extra_status_codes=[${HTTP_INTERNAL_SERVER_ERROR}]
 
@@ -450,13 +454,13 @@ Verify LDAP Authentication With Invalid LDAP User
 Update LDAP User Roles And Verify Host Poweroff Operation
     [Documentation]  Update LDAP user roles and verify host poweroff operation.
     [Tags]  Update_LDAP_User_Roles_And_Verify_Host_Poweroff_Operation
-    [Teardown]  Restore LDAP Privilege
+    [Teardown]  Run Keywords  Redfish.Login  AND  Restore LDAP Privilege
 
     [Template]  Update LDAP User Role And Host Poweroff
     # ldap_type   group_privilege  group_name     valid_status_codes
 
     # Verify LDAP user with NoAccess privilege not able to do host poweroff.
-    ${LDAP_TYPE}  NoAccess         ${GROUP_NAME}  ${HTTP_FORBIDDEN}
+    #${LDAP_TYPE}  NoAccess         ${GROUP_NAME}  ${HTTP_FORBIDDEN}
 
     # Verify LDAP user with ReadOnly privilege not able to do host poweroff.
     ${LDAP_TYPE}  ReadOnly         ${GROUP_NAME}  ${HTTP_FORBIDDEN}
@@ -693,7 +697,7 @@ Get LDAP Privilege
 
     ${ldap_config}=  Get LDAP Configuration  ${LDAP_TYPE}
     ${num_list_entries}=  Get Length  ${ldap_config["RemoteRoleMapping"]}
-    Return From Keyword If  ${num_list_entries} == ${0}  @{EMPTY}
+    Return From Keyword If  ${num_list_entries} == ${0}  ${EMPTY}
 
     [Return]  ${ldap_config["RemoteRoleMapping"][0]["LocalRole"]}
 
@@ -712,7 +716,7 @@ Restore LDAP Privilege
 Update LDAP User Role And Host Poweroff
     [Documentation]  Update LDAP user role and do host poweroff.
     [Arguments]  ${ldap_type}  ${group_privilege}  ${group_name}  ${valid_status_code}
-    [Teardown]  Run Keywords  Restore LDAP Privilege  AND  Redfish.Logout  AND  Redfish.Login
+    [Teardown]  Run Keywords  Redfish.Login  AND  Restore LDAP Privilege  AND  Redfish.Logout
 
     # Description of argument(s):
     # ldap_type          The LDAP type ("ActiveDirectory" or "LDAP").
@@ -720,12 +724,14 @@ Update LDAP User Role And Host Poweroff
     # group_name         The group name of user.
     # valid_status_code  The expected valid status code.
 
+    Redfish.Login
     Update LDAP Configuration with LDAP User Role And Group  ${ldap_type}
     ...  ${group_privilege}  ${group_name}
+    Redfish.Logout
 
     Redfish.Login  ${LDAP_USER}  ${LDAP_USER_PASSWORD}
 
     Redfish.Post  ${REDFISH_POWER_URI}
     ...  body={'ResetType': 'ForceOff'}   valid_status_codes=[${valid_status_code}]
 
-
+    Redfish.Logout
