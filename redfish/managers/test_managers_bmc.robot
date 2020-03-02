@@ -93,7 +93,7 @@ Redfish BMC Manager GracefulRestart When Host Off
     #Verify BMC RTC And UTC Time Drift
 
     # Check for journald persistency post reboot.
-    Check For Regex In Journald  ${REBOOT_REGEX}  error_check=${1}
+    # Check For Regex In Journald  ${REBOOT_REGEX}  error_check=${1}
 
 
 Verify Boot Count After BMC Reboot
