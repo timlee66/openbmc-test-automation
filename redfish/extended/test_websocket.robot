@@ -31,7 +31,7 @@ ${monitor_file}         websocket_monitor_out.txt
 ${esel_received}        eSEL received over websocket interface
 ${dump_received}        Dump notification received over websocket interface
 ${min_number_chars}     22
-${monitor_cmd}          ${monitor_pgm} ${OPENBMC_HOST} --openbmc_username ${OPENBMC_USERNAME}
+${monitor_cmd}          python3 bin/${monitor_pgm} ${OPENBMC_HOST} --openbmc_username ${OPENBMC_USERNAME}
 
 
 *** Test Cases ***
@@ -77,6 +77,7 @@ Test BMC Websocket Dump Interface
     [Tags]  Test_BMC_Websocket_Dump_Interface
 
     Delete All BMC Dump
+
     Start Websocket Monitor  dump
     ${dump_id}=  Create User Initiated Dump
     Check Existence Of BMC Dump File  ${dump_id}

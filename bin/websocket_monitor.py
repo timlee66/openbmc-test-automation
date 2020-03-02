@@ -14,6 +14,10 @@ from retrying import retry
 save_path_0 = sys.path[0]
 del sys.path[0]
 
+import sys
+# the mock-0.3.1 dir contains testcase.py, testutils.py & mock.py
+sys.path.append('lib/')
+
 from gen_print import *
 from gen_arg import *
 from gen_valid import *
