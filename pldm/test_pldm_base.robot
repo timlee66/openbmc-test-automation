@@ -10,7 +10,6 @@ Test Teardown    FFDC On Test Case Fail
 
 
 *** Test Cases ***
-
 Verify Get PLDM Types
     [Documentation]  Verify supported PLDM types.
     [Tags]  Verify_Get_PLDM_Types
@@ -25,7 +24,7 @@ Verify Get PLDM Version For Base
 
     ${pldm_cmd}=  Evaluate  $CMD_GETPLDMVERSION % 'base'
     ${pldm_output}=  Pldmtool  ${pldm_cmd}
-    Valid Value  pldm_output['type_0(base)']  ${VERSION_BASE['STRING']}
+    Valid Value  pldm_output['type_0(base)']  ['${VERSION_BASE['STRING']}']
 
 
 Verify Get PLDM Version For Platform
@@ -34,7 +33,7 @@ Verify Get PLDM Version For Platform
 
     ${pldm_cmd}=  Evaluate  $CMD_GETPLDMVERSION % 'platform'
     ${pldm_output}=  Pldmtool  ${pldm_cmd}
-    Valid Value  pldm_output['type_2(platform)']  ${VERSION_PLATFORM['STRING']}
+    Valid Value  pldm_output['type_2(platform)']  ['${VERSION_PLATFORM['STRING']}']
 
 
 Verify Get PLDM Version For BIOS
@@ -43,7 +42,7 @@ Verify Get PLDM Version For BIOS
 
     ${pldm_cmd}=  Evaluate  $CMD_GETPLDMVERSION % 'bios'
     ${pldm_output}=  Pldmtool  ${pldm_cmd}
-    Valid Value  pldm_output['type_3(bios)']  ${VERSION_BIOS['STRING']}
+    Valid Value  pldm_output['type_3(bios)']  ['${VERSION_BIOS['STRING']}']
 
 
 Verify Get PLDM Version For FRU
@@ -52,4 +51,16 @@ Verify Get PLDM Version For FRU
 
     ${pldm_cmd}=  Evaluate  $CMD_GETPLDMVERSION % 'fru'
     ${pldm_output}=  Pldmtool  ${pldm_cmd}
-    Valid Value  pldm_output['type_4(fru)']  ${VERSION_FRU['STRING']}
+    Valid Value  pldm_output['type_4(fru)']  ['${VERSION_FRU['STRING']}']
+
+Verify GetTID
+    [Documentation]  Verify GetTID (Terminus ID) response message.
+    [Tags]  Verify_GetTID
+
+    # Example output:
+    # TID : 1
+
+    ${pldm_output}=  Pldmtool  base GetTID
+    Rprint Vars  pldm_output
+
+    Valid Dict  pldm_output  valid_values={'tid': ['1']}

@@ -111,7 +111,8 @@ Verify NTP Server Set
     [Tags]  Verify_NTP_Server_Set
     [Teardown]  Restore NTP Mode
 
-    Redfish.Patch  ${REDFISH_NW_PROTOCOL_URI}  body={'NTP':{'NTPServers': ['${ntp_server_1}', '${ntp_server_2}']}}
+    Redfish.Patch  ${REDFISH_NW_PROTOCOL_URI}
+    ...  body={'NTP':{'NTPServers': ['${ntp_server_1}', '${ntp_server_2}']}}
     ...  valid_status_codes=[${HTTP_OK}, ${HTTP_NO_CONTENT}]
     ${network_protocol}=  Redfish.Get Properties  ${REDFISH_NW_PROTOCOL_URI}
     Should Contain  ${network_protocol["NTP"]["NTPServers"]}  ${ntp_server_1}
@@ -125,7 +126,8 @@ Verify NTP Server Value Not Duplicated
     [Tags]  Verify_NTP_Server_Value_Not_Duplicated
     [Teardown]  Restore NTP Mode
 
-    Redfish.Patch  ${REDFISH_NW_PROTOCOL_URI}  body={'NTP':{'NTPServers': ['${ntp_server_1}', '${ntp_server_1}']}}
+    Redfish.Patch  ${REDFISH_NW_PROTOCOL_URI}
+    ...  body={'NTP':{'NTPServers': ['${ntp_server_1}', '${ntp_server_1}']}}
     ...  valid_status_codes=[${HTTP_OK}, ${HTTP_NO_CONTENT}]
     ${network_protocol}=  Redfish.Get Properties  ${REDFISH_NW_PROTOCOL_URI}
     Should Contain X Times  ${network_protocol["NTP"]["NTPServers"]}  ${ntp_server_1}  1
@@ -137,7 +139,8 @@ Verify NTP Server Setting Persist After BMC Reboot
     [Tags]  Verify_NTP_Server_Setting_Persist_After_BMC_Reboot
     [Teardown]  Restore NTP Mode
 
-    Redfish.Patch  ${REDFISH_NW_PROTOCOL_URI}  body={'NTP':{'NTPServers': ['${ntp_server_1}', '${ntp_server_2}']}}
+    Redfish.Patch  ${REDFISH_NW_PROTOCOL_URI}
+    ...  body={'NTP':{'NTPServers': ['${ntp_server_1}', '${ntp_server_2}']}}
     ...  valid_status_codes=[${HTTP_OK}, ${HTTP_NO_CONTENT}]
     Redfish OBMC Reboot (off)
     Redfish.Login
@@ -210,7 +213,7 @@ Rest Set Time Owner
     Write Attribute  ${TIME_MANAGER_URI}sync_method  TimeSyncMethod  data=${data}  verify=${TRUE}
     Sleep  5s
 
-    ${data}=  Create Dictionary  data=${BMC_OWNER}
+    ${data}=  Create Dictionary  data=${BOTH_OWNER}
     Write Attribute  ${TIME_MANAGER_URI}owner  TimeOwner  data=${data}  verify=${TRUE}
 
 

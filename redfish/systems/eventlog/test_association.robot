@@ -55,11 +55,11 @@ Create Test Error Callout And Verify AdditionalData
 
 
 Create Test Error Callout And Verify Associations
-    [Documentation]  Create test error callout and verify associations.
+    [Documentation]  Create test error callout and verify Associations.
     [Tags]  Create_Test_Error_Callout_And_Verify_Associations
 
     # Test error log association entry example:
-    # "associations": [
+    # "Associations": [
     #   [
     #        "callout",
     #        "fault",
@@ -95,7 +95,7 @@ Create Test Error Callout And Delete
     #    "Resolved": 0,
     #    "Severity": "xyz.openbmc_project.Logging.Entry.Level.Error",
     #    "Timestamp": 1487747332528,
-    #    "associations": [
+    #    "Associations": [
     #        [
     #          "callout",
     #          "fault",
@@ -132,7 +132,7 @@ Create Two Test Error Callout And Delete
     #    "Resolved": 0,
     #    "Severity": "xyz.openbmc_project.Logging.Entry.Level.Error",
     #    "Timestamp": 1487747332528,
-    #    "associations": [
+    #    "Associations": [
     #        [
     #          "callout",
     #          "fault",
@@ -156,7 +156,7 @@ Create Two Test Error Callout And Delete
     #    "Resolved": 0,
     #    "Severity": "xyz.openbmc_project.Logging.Entry.Level.Error",
     #    "Timestamp": 1487747332528,
-    #    "associations": [
+    #    "Associations": [
     #        [
     #          "callout",
     #          "fault",
@@ -243,7 +243,7 @@ Create Test Error With Callout
     #    "Resolved": 0,
     #    "Severity": "xyz.openbmc_project.Logging.Entry.Level.Error",
     #    "Timestamp": 1487747332528,
-    #    "associations": [
+    #    "Associations": [
     #        [
     #          "callout",
     #          "fault",
