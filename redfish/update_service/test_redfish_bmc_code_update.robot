@@ -52,7 +52,7 @@ Redfish Code Update With Multiple Firmware
     [Template]  Redfish Multiple Upload Image And Check Progress State
 
     # policy   image_file_path     alternate_image_file_path
-    OnReset  ${IMAGE0_FILE_PATH}  ${IMAGE1_FILE_PATH}
+    OnReset  ${IMAGE0_FILE_PATH}  ${IMAGE_FILE_PATH}
 
 
 *** Keywords ***
