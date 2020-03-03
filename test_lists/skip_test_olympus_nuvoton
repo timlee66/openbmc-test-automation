@@ -37,18 +37,16 @@
 -e Verify_Supported_Fan_Thermal_Modes_Switch_At_Standby
 -e Verify_Supported_Fan_Thermal_Modes_Switch_At_Runtime
 -e Verify_Supported_Fan_Thermal_Mode_Remains_Set_After_IPL
+-e Verify_Supported_Fan_Thermal_Mode_Remains_Set_After_Boot
 
 # The test has script issue
 -e Test_BMC_Redfish_Account_Management
 -e Test_BMC_Redfish_Boot_Host_And_ForceOff
 -e Test_BMC_Redfish_Boot_Host_And_GracefulShutdown
 
-# do not change root  name and password
+# do not change root name and password
 -e Verify_Setting_IPMI_Root_User_With_New_Name
 -e Verify_IPMI_Root_User_Password_Change
-
-# coredump service is not supported
--e Verify_Core_Dump_Size
 
 # No alt flash
 -e Test_BMC_Alt_Side_Mirroring
