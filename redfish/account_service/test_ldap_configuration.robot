@@ -481,7 +481,7 @@ Update LDAP User Roles And Verify Host Poweron Operation
     # ldap_type   group_privilege  group_name     valid_status_codes
 
     # Verify LDAP user with NoAccess privilege not able to do host poweron.
-    ${LDAP_TYPE}  NoAccess         ${GROUP_NAME}  ${HTTP_FORBIDDEN}
+    #${LDAP_TYPE}  NoAccess         ${GROUP_NAME}  ${HTTP_FORBIDDEN}
 
     # Verify LDAP user with ReadOnly privilege not able to do host poweron.
     ${LDAP_TYPE}  ReadOnly         ${GROUP_NAME}  ${HTTP_FORBIDDEN}
