@@ -33,7 +33,7 @@ Redfish Signed Code Update
     [Template]  Redfish Signed Firmware Update
 
     # image_file_path
-    ${IMAGE_FILE_PATH}
+    ${IMAGE0_FILE_PATH}
 
 
 Redfish Fail Unsigned Code Update
