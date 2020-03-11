@@ -109,6 +109,7 @@ Get IP Address Source And Verify Using Redfish
     ${active_channel_config}=  Get Active Channel Config
     ${lan_config}=  Get LAN Print Dict  ${CHANNEL_NUMBER}
 
+    Redfish.Login
     ${ipv4_addresses}=  Redfish.Get Attribute
     ...  /redfish/v1/Managers/bmc/EthernetInterfaces/${active_channel_config['${CHANNEL_NUMBER}']['name']}
     ...  IPv4Addresses
@@ -150,6 +151,7 @@ Set IPMI Inband Network Configuration
 
     Run Inband IPMI Standard Command
     ...  lan set ${CHANNEL_NUMBER} ipsrc static  login_host=${login}
+    Sleep  10
     Run Inband IPMI Standard Command
     ...  lan set ${CHANNEL_NUMBER} ipaddr ${ip}  login_host=${0}
     Run Inband IPMI Standard Command
