@@ -43,7 +43,7 @@ Verify Add SEL Entry
     Create SEL
     # Get last SEL entry.
     ${resp}=  Run IPMI Standard Command  sel elist last 1
-    Run Keywords  Should Contain  ${resp}  Temperature #0x17  AND
+    Run Keywords  Should Contain  ${resp}  Temperature #0x01  AND
     ...  Should Contain  ${resp}  Asserted
     ...  msg=Add SEL Entry failed.
 
