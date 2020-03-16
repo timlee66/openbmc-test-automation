@@ -125,6 +125,9 @@ Verify SOL During Boot
     [Documentation]  Verify SOL during boot.
     [Tags]  Verify_SOL_During_Boot
 
+    Run Keyword
+    ...  Wait For Host To Ping  ${OS_HOST}  5 mins
+
     Redfish Hard Power Off
     Activate SOL Via IPMI
     Initiate Host Boot Via External IPMI  wait=${0}
@@ -136,6 +139,9 @@ Verify SOL During Boot
     #Wait Until Keyword Succeeds  3 mins  15 secs
     #...  Check IPMI SOL Output Content  ISTEP
     Deactivate SOL Via IPMI
+
+    Run Keyword
+    ...  Wait For Host To Ping  ${OS_HOST}  5 mins
 
     Redfish Hard Power Off
 
@@ -248,6 +254,9 @@ Verify SOL Setting
     ...  ${sol_info_dict}  ${setting_name_from_dict}
 
     Should Be Equal  '${setting_value}'  '${expected_value}'
+
+    Run Keyword
+    ...  Wait For Host To Ping  ${OS_HOST}  5 mins
 
     Redfish Hard Power Off
 
