@@ -125,7 +125,10 @@ Verify SOL During Boot
     [Documentation]  Verify SOL during boot.
     [Tags]  Verify_SOL_During_Boot
 
-    Run Keyword
+
+    ${os_state}=  Get Host State Attribute  OperatingSystemState
+    Rprint Vars  os_state
+    Run Keyword if  '${OS_BOOT_COMPLETE}' == '${os_state}'
     ...  Wait For Host To Ping  ${OS_HOST}  5 mins
 
     Redfish Hard Power Off
@@ -140,7 +143,10 @@ Verify SOL During Boot
     #...  Check IPMI SOL Output Content  ISTEP
     Deactivate SOL Via IPMI
 
-    Run Keyword
+    Sleep  10s
+    ${os_state}=  Get Host State Attribute  OperatingSystemState
+    Rprint Vars  os_state
+    Run Keyword if  '${OS_BOOT_COMPLETE}' == '${os_state}'
     ...  Wait For Host To Ping  ${OS_HOST}  5 mins
 
     Redfish Hard Power Off
@@ -255,7 +261,9 @@ Verify SOL Setting
 
     Should Be Equal  '${setting_value}'  '${expected_value}'
 
-    Run Keyword
+    ${os_state}=  Get Host State Attribute  OperatingSystemState
+    Rprint Vars  os_state
+    Run Keyword if  '${OS_BOOT_COMPLETE}' == '${os_state}'
     ...  Wait For Host To Ping  ${OS_HOST}  5 mins
 
     Redfish Hard Power Off
