@@ -41,8 +41,8 @@ Verify SDR Info
     ...  ${sdr_info['record_count']}  ${sensor_count}
 
     Should Be Equal  ${sdr_info['free_space']}  unspecified
-    Should Be Equal  ${sdr_info['most_recent_addition']}  ${EMPTY}
-    Should Be Equal  ${sdr_info['most_recent_erase']}  ${EMPTY}
+    Should Be Equal  ${sdr_info['most_recent_addition']}  NA
+    Should Be Equal  ${sdr_info['most_recent_erase']}  NA
     Should Be Equal  ${sdr_info['sdr_overflow']}  no
     Should Be Equal  ${sdr_info['sdr_repository_update_support']}  unspecified
     Should Be Equal  ${sdr_info['delete_sdr_supported']}  no
