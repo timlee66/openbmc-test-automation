@@ -7,6 +7,7 @@ Resource            ../../../lib/logging_utils.robot
 Resource            ../../../lib/openbmc_ffdc.robot
 Resource            ../../../lib/ipmi_client.robot
 Library             ../../../lib/logging_utils.py
+Variables           ../data/ipmi_raw_cmd_table.py
 
 Suite Setup         Suite Setup Execution
 Suite Teardown      Suite Teardown Execution
@@ -251,9 +252,11 @@ Verify IPMI SEL Event Entries
     [Documentation]  Verify IPMI SEL's entries info.
     [Tags]  Verify_IPMI_SEL_Event_Entries
 
+    Run IPMI Standard Command  sel clear
+
     # Generate error logs of random count.
     ${count}=  Evaluate  random.randint(1, 5)  modules=random
-    Repeat Keyword  ${count}  Create Test Error Log
+    Repeat Keyword  ${count}   Create SEL
 
     ${sel_entries_count}=  Get IPMI SEL Setting  Entries
     Should Be Equal As Strings  ${sel_entries_count}  ${count}
@@ -263,14 +266,21 @@ Verify IPMI SEL Event Last Add Time
     [Documentation]  Verify IPMI SEL's last added timestamp.
     [Tags]  Verify_IPMI_SEL_Event_Last_Add_Time
 
-    Create Test Error Log
+    Run IPMI Standard Command  sel clear
+    Create SEL
     ${sel_time}=  Run IPMI Standard Command  sel time get
-    ${sel_time}=  Convert Date  ${sel_time}
+    ${sel_time}=  Remove String  ${sel_time}  AM  CST  PM  UTC
+    ${sel_time}=  Convert Date  ${sel_time.strip()}
     ...  date_format=%m/%d/%Y %H:%M:%S  exclude_millis=True
 
+    Rprint Vars  sel_time
+
     ${sel_last_add_time}=  Get IPMI SEL Setting  Last Add Time
-    ${sel_last_add_time}=  Convert Date  ${sel_last_add_time}
+    ${sel_last_add_time}=  Remove String  ${sel_last_add_time}  AM  CST  PM  UTC
+    ${sel_last_add_time}=  Convert Date  ${sel_last_add_time.strip()}
     ...  date_format=%m/%d/%Y %H:%M:%S  exclude_millis=True
+
+    Rprint Vars  sel_last_add_time
 
     ${time_diff}=
     ...  Subtract Date From Date  ${sel_last_add_time}  ${sel_time}
@@ -426,7 +436,7 @@ Test Setup Execution
 Test Teardown Execution
     [Documentation]  Do the post test teardown.
 
-    FFDC On Test Case Fail
+    #FFDC On Test Case Fail
     Redfish.Login
     Redfish Purge Event Log
 
@@ -480,3 +490,12 @@ Install Debug Certificate On BMC
     Import Library  SCPLibrary  WITH NAME  scp
     Open Connection for SCP
     scp.Put File  ${cert_file_path}  ${targ_cert_dir_path}/server.pem
+
+Create SEL
+    [Documentation]  Create a SEL.
+
+    # Create a SEL.
+    # Example:
+    # a | 02/14/2020 | 01:16:58 | Temperature #0x17 |  | Asserted
+    Run IPMI Standard Command
+    ...  raw ${IPMI_RAW_CMD['SEL_entry']['Add'][0]}
