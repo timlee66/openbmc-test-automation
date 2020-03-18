@@ -190,6 +190,7 @@ Verify Journald Post BMC Reset
     ${hostname}  ${stderr}  ${rc}=  BMC Execute Command  hostname
     OBMC Reboot (off)
 
+    Sleep  10s
     ${cmd}=  Catenate  grep ${hostname} /var/log/${bmc_hostname}/syslog |
     ...  egrep '${BMC_STOP_MSG}|${BMC_START_MSG}|${BMC_BOOT_MSG}'
     ${remote_journald}=  Remote Logging Server Execute Command  command=${cmd}
@@ -323,6 +324,9 @@ Suite Setup Execution
 
     ${hostname}  ${stderr}  ${rc}=  BMC Execute Command  /bin/hostname
     Set Suite Variable  ${bmc_hostname}  ${hostname}
+    Remote Logging Server Execute Command
+    ...  command=[ -f /var/log/${bmc_hostname}/syslog ] && mv /var/log/${hostname}/syslog /var/log/${hostname}/syslog.org
+    Remote Logging Server Execute Command  command=systemctl restart rsyslog.service
     Configure Remote Log Server With Parameters
 
 
