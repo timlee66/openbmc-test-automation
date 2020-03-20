@@ -8,7 +8,7 @@
 -e Test_IPMI_Warm_Reset
 
 # Skip all of redfish/eventlog/test_esel.robot
-# this is used for ibmc oem ipmi commamd
+# this is only used for ibmc oem ipmi commamd
 -e Verify_eSEL_Using_Redfish
 -e Verify_eSEL_Entries_Using_Redfish
 -e Verify_eSEL_Description_And_EntryID_Using_REST
@@ -17,7 +17,7 @@
 -e Test_Wrong_Reservation_ID
 -e Test_Correct_Reservation_ID
 
-# We haven't yet implemented this feature
+# TODO:  We haven't yet implemented this feature
 -e Create_Test_Error_Callout_And_Verify_LED
 
 # Skip all of redfish/extended/test_occ_power.robot
@@ -84,6 +84,20 @@
 -e Configure_Loopback_IP_For_Gateway
 -e Configure_Multicast_IP_For_Gateway
 -e Configure_Network_ID_For_Gateway
+
+# TODO: This feature hasn't implemented yet.
+-e Verify_NTP_Server_Value_Not_Duplicated
+
+# This test will generate an example eventlog, and this event log should also list in SEL.
+# But we don't support this example eventlog.
+-e Verify_IPMI_SEL_Event_Entries
+
+# In journal based SEL, it don't support delete sel entry
+-e Verify_IPMI_SEL_Delete
+
+#  No need to test it in extended part
+#  We already have Update Service test
+-e Redfish_BMC_Code_Update
 
 -v MACHINE_TYPE:olympus-nuvoton
 -v log_file_path:log.txt
