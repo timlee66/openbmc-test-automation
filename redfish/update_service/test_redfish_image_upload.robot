@@ -135,7 +135,7 @@ Redfish Bad Firmware Update
     ${status_code}=  Upload Image To BMC
     ...  ${REDFISH_BASE_URI}UpdateService
     ...  ${timeout}
-    ...  valid_status_codes=[${HTTP_OK}, ${HTTP_INTERNAL_SERVER_ERROR}]
+    ...  valid_status_codes=[${HTTP_OK}, ${HTTP_INTERNAL_SERVER_ERROR}, ${HTTP_ACCEPTED}]
     ...  data=${image_data}
 
     Return From Keyword If  ${status_code} == ${HTTP_INTERNAL_SERVER_ERROR}
