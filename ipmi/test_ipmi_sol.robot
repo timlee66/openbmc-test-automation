@@ -128,7 +128,7 @@ Verify SOL During Boot
 
     ${os_state}=  Get Host State Attribute  OperatingSystemState
     Rprint Vars  os_state
-    Run Keyword if  '${OS_BOOT_COMPLETE}' == '${os_state}'
+    Run Keyword if  '${OS_BOOT_COMPLETE}' != '${os_state}'
     ...  Wait For Host To Ping  ${OS_HOST}  5 mins
 
     Redfish Hard Power Off
@@ -146,7 +146,7 @@ Verify SOL During Boot
     Sleep  10s
     ${os_state}=  Get Host State Attribute  OperatingSystemState
     Rprint Vars  os_state
-    Run Keyword if  '${OS_BOOT_COMPLETE}' == '${os_state}'
+    Run Keyword if  '${OS_BOOT_COMPLETE}' != '${os_state}'
     ...  Wait For Host To Ping  ${OS_HOST}  5 mins
 
     Redfish Hard Power Off
@@ -263,7 +263,7 @@ Verify SOL Setting
 
     ${os_state}=  Get Host State Attribute  OperatingSystemState
     Rprint Vars  os_state
-    Run Keyword if  '${OS_BOOT_COMPLETE}' == '${os_state}'
+    Run Keyword if  '${OS_BOOT_COMPLETE}' != '${os_state}'
     ...  Wait For Host To Ping  ${OS_HOST}  5 mins
 
     Redfish Hard Power Off
