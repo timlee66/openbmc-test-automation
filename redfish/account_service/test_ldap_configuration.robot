@@ -244,7 +244,7 @@ Update LDAP Group Name And Verify Operations
     #${GROUP_NAME}            group_privilege=Callback
     ${GROUP_NAME}            group_privilege=NoAccess
     ...  valid_status_codes=[${HTTP_UNAUTHORIZED}, ${HTTP_FORBIDDEN}]
-    ...  extra_status_codes=[${HTTP_INTERNAL_SERVER_ERROR}]
+    #...  extra_status_codes=[${HTTP_INTERNAL_SERVER_ERROR}]
     Invalid_LDAP_Group_Name  group_privilege=Administrator
     ...  valid_status_codes=[${HTTP_UNAUTHORIZED}, ${HTTP_FORBIDDEN}]
     Invalid_LDAP_Group_Name  group_privilege=Operator
@@ -255,7 +255,7 @@ Update LDAP Group Name And Verify Operations
     #Invalid_LDAP_Group_Name  group_privilege=Callback
     Invalid_LDAP_Group_Name  group_privilege=NoAccess
     ...  valid_status_codes=[${HTTP_UNAUTHORIZED}, ${HTTP_FORBIDDEN}]
-    ...  extra_status_codes=[${HTTP_INTERNAL_SERVER_ERROR}]
+    #...  extra_status_codes=[${HTTP_INTERNAL_SERVER_ERROR}]
 
 
 Verify LDAP BaseDN Update And LDAP Login
@@ -316,9 +316,9 @@ Verify Authorization With Null Privilege
     [Tags]  Verify_LDAP_Authorization_With_Null_Privilege
     [Teardown]  Restore LDAP Privilege
 
-    ${ex_group_name}=  Set Variable If  '${old_ldap_privilege}' == '${EMPTY}'  ${GROUP_NAME}  Invalid_LDAP_Group_Name
+    #${ex_group_name}=  Set Variable If  '${old_ldap_privilege}' == '${EMPTY}'  ${GROUP_NAME}  Invalid_LDAP_Group_Name
 
-    Update LDAP Config And Verify Set Host Name  ${ex_group_name}  ${EMPTY}
+    Update LDAP Config And Verify Set Host Name  Invalid_LDAP_Group_Name  ${EMPTY}
     ...  [${HTTP_FORBIDDEN}]
     ...  extra_status_codes=[${HTTP_INTERNAL_SERVER_ERROR}]
 
@@ -329,9 +329,9 @@ Verify Authorization With Invalid Privilege
     [Tags]  Verify_LDAP_Authorization_With_Invalid_Privilege
     [Teardown]  Restore LDAP Privilege
 
-    ${ex_group_name}=  Set Variable If  '${old_ldap_privilege}' == '${EMPTY}'  ${GROUP_NAME}  Invalid_LDAP_Group_Name
+    #${ex_group_name}=  Set Variable If  '${old_ldap_privilege}' == '${EMPTY}'  ${GROUP_NAME}  Invalid_LDAP_Group_Name
 
-    Update LDAP Config And Verify Set Host Name  ${ex_group_name}
+    Update LDAP Config And Verify Set Host Name  Invalid_LDAP_Group_Name
     ...  Invalid_Privilege  [${HTTP_FORBIDDEN}]
     ...  extra_status_codes=[${HTTP_INTERNAL_SERVER_ERROR}]
 
