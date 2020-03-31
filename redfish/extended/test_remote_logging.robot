@@ -324,9 +324,15 @@ Suite Setup Execution
 
     ${hostname}  ${stderr}  ${rc}=  BMC Execute Command  /bin/hostname
     Set Suite Variable  ${bmc_hostname}  ${hostname}
+
+    BMC Execute Command
+    ...  systemctl stop syslog.socket
     Remote Logging Server Execute Command
     ...  command=[ -f /var/log/${bmc_hostname}/syslog ] && mv /var/log/${hostname}/syslog /var/log/${hostname}/syslog.org
     Remote Logging Server Execute Command  command=systemctl restart rsyslog.service
+    BMC Execute Command
+    ...  systemctl start syslog.socket
+
     Configure Remote Log Server With Parameters
 
 
