@@ -622,3 +622,96 @@ def get_chassis_status():
     result = vf.key_value_outbuf_to_dict(ret_values, process_indent=1)
 
     return result
+
+
+def get_channel_info(channel_number=1):
+    r"""
+    Get the channel info and return as a dictionary.
+    Example:
+
+    channel_info:
+      [channel_0x2_info]:
+        [channel_medium_type]:                        802.3 LAN
+        [channel_protocol_type]:                      IPMB-1.0
+        [session_support]:                            multi-session
+        [active_session_count]:                       0
+        [protocol_vendor_id]:                         7154
+      [volatile(active)_settings]:
+        [alerting]:                                   enabled
+        [per-message_auth]:                           enabled
+        [user_level_auth]:                            enabled
+        [access_mode]:                                always available
+      [non-volatile_settings]:
+        [alerting]:                                   enabled
+        [per-message_auth]:                           enabled
+        [user_level_auth]:                            enabled
+        [access_mode]:                                always available
+    """
+
+    status, ret_values = \
+        grk.run_key_u("Run IPMI Standard Command  channel info " + str(channel_number))
+    key_var_list = list(filter(None, ret_values.split("\n")))
+    # To match the dict format, add a colon after 'Volatile(active) Settings' and 'Non-Volatile Settings'
+    # respectively.
+    key_var_list[6] = 'Volatile(active) Settings:'
+    key_var_list[11] = 'Non-Volatile Settings:'
+    result = vf.key_value_list_to_dict(key_var_list, process_indent=1)
+    return result
+
+
+def get_user_access_ipmi(channel_number=1):
+
+    r"""
+    Run 'user list [<channel number>]' command and return the result as a list of dictionaries.
+
+    Example robot code:
+    ${users_access}=  user list 1
+    Rprint Vars  users_access
+
+    Example output:
+    users:
+      [0]:
+        [id]:                                         1
+        [name]:                                       root
+        [callin]:                                     false
+        [link]:                                       true
+        [auth]:                                       true
+        [ipmi]:                                       ADMINISTRATOR
+      [1]:
+        [id]:                                         2
+        [name]:                                       axzIDwnz
+        [callin]:                                     true
+        [link]:                                       false
+        [auth]:                                       true
+        [ipmi]:                                       ADMINISTRATOR
+    """
+
+    cmd_buf = "user list " + str(channel_number)
+    stdout, stderr, rc = execute_ipmi_cmd(cmd_buf, "external", print_output=0)
+    return vf.outbuf_to_report(stdout)
+
+
+def get_channel_auth_capabilities(channel_number=1):
+    r"""
+    Get the channel authentication capabilities and return as a dictionary.
+
+    Example:
+
+    channel_auth_cap:
+        [channel_number]:                               2
+        [ipmi_v1.5__auth_types]:
+        [kg_status]:                                    default (all zeroes)
+        [per_message_authentication]:                   enabled
+        [user_level_authentication]:                    enabled
+        [non-null_user_names_exist]:                    yes
+        [null_user_names_exist]:                        no
+        [anonymous_login_enabled]:                      no
+        [channel_supports_ipmi_v1.5]:                   no
+        [channel_supports_ipmi_v2.0]:                   yes
+    """
+
+    status, ret_values = \
+        grk.run_key_u("Run IPMI Standard Command  channel authcap " + str(channel_number) + " 4")
+    result = vf.key_value_outbuf_to_dict(ret_values, process_indent=1)
+
+    return result

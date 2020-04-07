@@ -66,10 +66,11 @@ Get BMC IP Info
     @{ip_data}=  Create List
 
     # Get all IP addresses and prefix lengths on system.
-    :FOR  ${ip_component}  IN  @{ip_components}
-    \  @{if_info}=  Split String  ${ip_component}
-    \  ${ip_n_prefix}=  Get From List  ${if_info}  1
-    \  Append To List  ${ip_data}  ${ip_n_prefix}
+    FOR  ${ip_component}  IN  @{ip_components}
+      @{if_info}=  Split String  ${ip_component}
+      ${ip_n_prefix}=  Get From List  ${if_info}  1
+      Append To List  ${ip_data}  ${ip_n_prefix}
+    END
 
     [Return]  ${ip_data}
 
@@ -123,9 +124,10 @@ Get BMC MAC Address List
 
     ${mac_list}=  Create List
     @{lines}=  Split To Lines  ${cmd_output}
-    :FOR  ${line}  IN  @{lines}
-    \  @{words}=  Split String  ${line}
-    \   Append To List  ${mac_list}  ${words[1]}
+    FOR  ${line}  IN  @{lines}
+      @{words}=  Split String  ${line}
+      Append To List  ${mac_list}  ${words[1]}
+    END
 
     [Return]  ${mac_list}
 
@@ -153,9 +155,10 @@ Get List Of IP Address Via REST
 
     ${ip_list}=  Create List
 
-    : FOR  ${ip_uri}  IN  @{ip_uri_list}
-    \  ${ip_addr}=  Read Attribute  ${ip_uri}  Address
-    \  Append To List  ${ip_list}  ${ip_addr}
+    FOR  ${ip_uri}  IN  @{ip_uri_list}
+      ${ip_addr}=  Read Attribute  ${ip_uri}  Address
+      Append To List  ${ip_list}  ${ip_addr}
+    END
 
     [Return]  @{ip_list}
 
@@ -169,9 +172,10 @@ Delete IP And Object
 
     # Find IP object having this IP address.
 
-    : FOR  ${ip_uri}  IN  @{ip_uri_list}
-    \  ${ip_addr1}=  Read Attribute  ${ip_uri}  Address
-    \  Run Keyword If  '${ip_addr}' == '${ip_addr1}'  Exit For Loop
+     FOR  ${ip_uri}  IN  @{ip_uri_list}
+       ${ip_addr1}=  Read Attribute  ${ip_uri}  Address
+       Run Keyword If  '${ip_addr}' == '${ip_addr1}'  Exit For Loop
+     END
 
     # If the given IP address is not configured, return.
     # Otherwise, delete the IP and object.
@@ -215,11 +219,12 @@ Get First Non Pingable IP From Subnet
     # First element in list is Network part.
     ${network_part}=  Get From List  ${split_ip}  0
 
-    : FOR  ${octet4}  IN RANGE  1  255
-    \  ${new_ip}=  Catenate  ${network_part}.${octet4}
-    \  ${status}=  Run Keyword And Return Status  Ping Host  ${new_ip}
-    # If IP is non-pingable, return it.
-    \  Return From Keyword If  '${status}' == 'False'  ${new_ip}
+    FOR  ${octet4}  IN RANGE  1  255
+      ${new_ip}=  Catenate  ${network_part}.${octet4}
+      ${status}=  Run Keyword And Return Status  Ping Host  ${new_ip}
+      # If IP is non-pingable, return it.
+      Return From Keyword If  '${status}' == 'False'  ${new_ip}
+    END
 
     Fail  msg=No non-pingable IP could be found in subnet ${network_part}.
 
@@ -315,3 +320,205 @@ CLI Get Nameservers
     ${nameservers}=  Split String  ${stdout}
 
     [Return]  ${nameservers}
+
+
+Get Network Configuration
+    [Documentation]  Get network configuration.
+    # Sample output:
+    #{
+    #  "@odata.context": "/redfish/v1/$metadata#EthernetInterface.EthernetInterface",
+    #  "@odata.id": "/redfish/v1/Managers/bmc/EthernetInterfaces/eth0",
+    #  "@odata.type": "#EthernetInterface.v1_2_0.EthernetInterface",
+    #  "Description": "Management Network Interface",
+    #  "IPv4Addresses": [
+    #    {
+    #      "Address": "169.254.xx.xx",
+    #      "AddressOrigin": "IPv4LinkLocal",
+    #      "Gateway": "0.0.0.0",
+    #      "SubnetMask": "255.255.0.0"
+    #    },
+    #    {
+    #      "Address": "xx.xx.xx.xx",
+    #      "AddressOrigin": "Static",
+    #      "Gateway": "xx.xx.xx.1",
+    #      "SubnetMask": "xx.xx.xx.xx"
+    #    }
+    #  ],
+    #  "Id": "eth0",
+    #  "MACAddress": "xx:xx:xx:xx:xx:xx",
+    #  "Name": "Manager Ethernet Interface",
+    #  "SpeedMbps": 0,
+    #  "VLAN": {
+    #    "VLANEnable": false,
+    #    "VLANId": 0
+    #  }
+
+    ${resp}=  Redfish.Get  ${REDFISH_NW_ETH0_URI}
+    @{network_configurations}=  Get From Dictionary  ${resp.dict}  IPv4StaticAddresses
+    [Return]  @{network_configurations}
+
+
+Add IP Address
+    [Documentation]  Add IP Address To BMC.
+    [Arguments]  ${ip}  ${subnet_mask}  ${gateway}
+    ...  ${valid_status_codes}=${HTTP_OK}
+
+    # Description of argument(s):
+    # ip                  IP address to be added (e.g. "10.7.7.7").
+    # subnet_mask         Subnet mask for the IP to be added
+    #                     (e.g. "255.255.0.0").
+    # gateway             Gateway for the IP to be added (e.g. "10.7.7.1").
+    # valid_status_codes  Expected return code from patch operation
+    #                     (e.g. "200").  See prolog of rest_request
+    #                     method in redfish_plus.py for details.
+
+    ${empty_dict}=  Create Dictionary
+    ${ip_data}=  Create Dictionary  Address=${ip}
+    ...  SubnetMask=${subnet_mask}  Gateway=${gateway}
+
+    ${patch_list}=  Create List
+    ${network_configurations}=  Get Network Configuration
+    ${num_entries}=  Get Length  ${network_configurations}
+
+    FOR  ${INDEX}  IN RANGE  0  ${num_entries}
+      Append To List  ${patch_list}  ${empty_dict}
+    END
+
+    # We need not check for existence of IP on BMC while adding.
+    Append To List  ${patch_list}  ${ip_data}
+    ${data}=  Create Dictionary  IPv4StaticAddresses=${patch_list}
+
+    Redfish.patch  ${REDFISH_NW_ETH0_URI}  body=&{data}
+    ...  valid_status_codes=[${valid_status_codes}]
+
+    Return From Keyword If  '${valid_status_codes}' != '${HTTP_OK}'
+
+    # Note: Network restart takes around 15-18s after patch request processing.
+    Sleep  ${NETWORK_TIMEOUT}s
+    Wait For Host To Ping  ${OPENBMC_HOST}  ${NETWORK_TIMEOUT}
+
+    Verify IP On BMC  ${ip}
+    Validate Network Config On BMC
+
+
+Delete IP Address
+    [Documentation]  Delete IP Address Of BMC.
+    [Arguments]  ${ip}  ${valid_status_codes}=${HTTP_OK}
+
+    # Description of argument(s):
+    # ip                  IP address to be deleted (e.g. "10.7.7.7").
+    # valid_status_codes  Expected return code from patch operation
+    #                     (e.g. "200").  See prolog of rest_request
+    #                     method in redfish_plus.py for details.
+
+    ${empty_dict}=  Create Dictionary
+    ${patch_list}=  Create List
+
+    @{network_configurations}=  Get Network Configuration
+    FOR  ${network_configuration}  IN  @{network_configurations}
+      Run Keyword If  '${network_configuration['Address']}' == '${ip}'
+      ...  Append To List  ${patch_list}  ${null}
+      ...  ELSE  Append To List  ${patch_list}  ${empty_dict}
+    END
+
+    ${ip_found}=  Run Keyword And Return Status  List Should Contain Value
+    ...  ${patch_list}  ${null}  msg=${ip} does not exist on BMC
+    Pass Execution If  ${ip_found} == ${False}  ${ip} does not exist on BMC
+
+    # Run patch command only if given IP is found on BMC
+    ${data}=  Create Dictionary  IPv4StaticAddresses=${patch_list}
+
+    Redfish.patch  ${REDFISH_NW_ETH0_URI}  body=&{data}
+    ...  valid_status_codes=[${valid_status_codes}]
+
+    # Note: Network restart takes around 15-18s after patch request processing
+    Sleep  ${NETWORK_TIMEOUT}s
+    Wait For Host To Ping  ${OPENBMC_HOST}  ${NETWORK_TIMEOUT}
+
+    ${delete_status}=  Run Keyword And Return Status  Verify IP On BMC  ${ip}
+    Run Keyword If  '${valid_status_codes}' == '${HTTP_OK}'
+    ...  Should Be True  '${delete_status}' == '${False}'
+    ...  ELSE  Should Be True  '${delete_status}' == '${True}'
+
+    Validate Network Config On BMC
+
+
+Validate Network Config On BMC
+    [Documentation]  Check that network info obtained via redfish matches info
+    ...              obtained via CLI.
+
+    @{network_configurations}=  Get Network Configuration
+    ${ip_data}=  Get BMC IP Info
+    FOR  ${network_configuration}  IN  @{network_configurations}
+      Should Contain Match  ${ip_data}  ${network_configuration['Address']}/*
+      ...  msg=IP address does not exist.
+    END
+
+
+Create VLAN
+    [Documentation]  Create a VLAN.
+    [Arguments]  ${id}  ${interface}=eth0  ${expected_result}=valid
+
+    # Description of argument(s):
+    # id  The VLAN ID (e.g. '53').
+    # interface  The physical interface for the VLAN(e.g. 'eth0').
+    # expected_result  Expected status of VLAN configuration.
+
+    @{data_vlan_id}=  Create List  ${interface}  ${id}
+    ${data}=  Create Dictionary   data=@{data_vlan_id}
+    ${resp}=  OpenBMC Post Request  ${vlan_resource}  data=${data}
+    ${resp.status_code}=  Convert To String  ${resp.status_code}
+    ${status}=  Run Keyword And Return Status
+    ...  Valid Value  resp.status_code  ["${HTTP_OK}"]
+
+    Run Keyword If  '${expected_result}' == 'error'
+    ...      Should Be Equal  ${status}  ${False}
+    ...      msg=Configuration of an invalid VLAN ID Failed.
+    ...  ELSE
+    ...      Should Be Equal  ${status}  ${True}
+    ...      msg=Configuration of a valid VLAN ID Failed.
+
+    Sleep  ${NETWORK_TIMEOUT}s
+
+
+Configure Network Settings On VLAN
+    [Documentation]  Configure network settings.
+    [Arguments]  ${id}  ${ip_addr}  ${prefix_len}  ${gateway_ip}=${gateway}
+    ...  ${expected_result}=valid  ${interface}=eth0
+
+    # Description of argument(s):
+    # id               The VLAN ID (e.g. '53').
+    # ip_addr          IP address of VLAN Interface.
+    # prefix_len       Prefix length of VLAN Interface.
+    # gateway_ip       Gateway IP address of VLAN Interface.
+    # expected_result  Expected status of network setting configuration.
+    # interface        Physical Interface on which the VLAN is defined.
+
+    @{ip_parm_list}=  Create List  ${network_resource}
+    ...  ${ip_addr}  ${prefix_len}  ${gateway_ip}
+
+    ${data}=  Create Dictionary  data=@{ip_parm_list}
+
+    Run Keyword And Ignore Error  OpenBMC Post Request
+    ...  ${NETWORK_MANAGER}${interface}_${id}/action/IP  data=${data}
+
+    # After any modification on network interface, BMC restarts network
+    # module, wait until it is reachable. Then wait 15 seconds for new
+    # configuration to be updated on BMC.
+
+    Wait For Host To Ping  ${OPENBMC_HOST}  ${NETWORK_TIMEOUT}
+    ...  ${NETWORK_RETRY_TIME}
+    Sleep  ${NETWORK_TIMEOUT}s
+
+    # Verify whether new IP address is populated on BMC system.
+    # It should not allow to configure invalid settings.
+    ${status}=  Run Keyword And Return Status
+    ...  Verify IP On BMC  ${ip_addr}
+
+    Run Keyword If  '${expected_result}' == 'error'
+    ...      Should Be Equal  ${status}  ${False}
+    ...      msg=Configuration of invalid IP Failed.
+    ...  ELSE
+    ...      Should Be Equal  ${status}  ${True}
+    ...      msg=Configuration of valid IP Failed.
+

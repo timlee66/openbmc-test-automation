@@ -8,18 +8,13 @@ Library                ../lib/ipmi_utils.py
 Library                ../lib/gen_robot_valid.py
 Library                ../lib/var_funcs.py
 Library                ../lib/bmc_network_utils.py
+Variables              ../data/ipmi_raw_cmd_table.py
 
 Suite Setup            Redfish.Login
 Test Setup             Printn
 Test Teardown          FFDC On Test Case Fail
 
-Force Tags             IPMI_Network
-
-
-*** Variables ***
-
-${initial_lan_config}   &{EMPTY}
-
+Force Tags             IPMI_Network_Verify
 
 *** Test Cases ***
 
@@ -31,7 +26,6 @@ Retrieve IP Address Via IPMI And Verify Using Redfish
     FOR  ${channel_number}  IN  @{active_channel_config.keys()}
       Verify Channel Info  ${channel_number}  IPv4StaticAddresses  ${active_channel_config}
     END
-
 
 Retrieve Default Gateway Via IPMI And Verify
     [Documentation]  Retrieve default gateway via IPMI and verify it's existence on the BMC.
@@ -84,24 +78,6 @@ Test Invalid IPMI Channel Response
     ...  msg=IPMI channel ${channel_number} is invalid but seen working.
 
 
-Verify IPMI Inband Network Configuration
-    [Documentation]  Verify BMC network configuration via inband IPMI.
-    [Tags]  Verify_IPMI_Inband_Network_Configuration
-    [Teardown]  Run Keywords  Restore Configuration  AND  FFDC On Test Case Fail
-
-    Redfish Power On
-    ${initial_lan_config}=  Get LAN Print Dict  ${CHANNEL_NUMBER}  ipmi_cmd_type=inband
-    Set Suite Variable  ${initial_lan_config}
-
-    Set IPMI Inband Network Configuration  10.10.10.10  255.255.255.0  10.10.10.10
-    Sleep  10
-
-    ${lan_print_output}=  Get LAN Print Dict  ${CHANNEL_NUMBER}  ipmi_cmd_type=inband
-    Valid Value  lan_print_output['IP Address']  ["10.10.10.10"]
-    Valid Value  lan_print_output['Subnet Mask']  ["255.255.255.0"]
-    Valid Value  lan_print_output['Default Gateway IP']  ["10.10.10.10"]
-
-
 Get IP Address Source And Verify Using Redfish
     [Documentation]  Get IP address source and verify it using Redfish.
     [Tags]  Get_IP_Address_Source_And_Verify_Using_Redfish
@@ -124,6 +100,56 @@ Get IP Address Source And Verify Using Redfish
     Valid Value  lan_config['IP Address Source']  ['${ip_address_source}']
 
 
+Verify Get Set In Progress
+    [Documentation]  Verify Get Set In Progress which belongs to LAN Configuration Parameters
+    ...              via IPMI raw Command.
+
+    ${ipmi_output}=  Run IPMI Command
+    ...  ${IPMI_RAW_CMD['LAN_Config_Params']['Get'][0]} ${CHANNEL_NUMBER} 0x00 0x00 0x00
+
+    ${ipmi_output}=  Split String  ${ipmi_output}
+    ${set_in_progress_value}=  Set Variable  ${ipmi_output[1]}
+
+    # 00b = set complete.
+    # 01b = set in progress.
+    Should Contain Any  ${set_in_progress_value}  00  01
+
+
+Verify Cipher Suite Entry Count
+    [Documentation]  Verify cipher suite entry count which belongs to LAN Configuration Parameters
+    ...              via IPMI raw Command.
+
+    ${ipmi_output}=  Run IPMI Command
+    ...  ${IPMI_RAW_CMD['LAN_Config_Params']['Get'][0]} ${CHANNEL_NUMBER} 0x16 0x00 0x00
+    ${cipher_suite_entry_count}=  Split String  ${ipmi_output}
+
+    # Convert minor cipher suite entry count from BCD format to integer. i.e. 01 to 1.
+    ${cipher_suite_entry_count[1]}=  Convert To Integer  ${cipher_suite_entry_count[1]}
+    ${cnt}=  Get length  ${valid_ciphers}
+
+    Should be Equal  ${cipher_suite_entry_count[1]}  ${cnt}
+
+
+Verify Authentication Type Support
+    [Documentation]  Verify authentication type support which belongs to LAN Configuration Parameters
+    ...              via IPMI raw Command.
+
+    ${ipmi_output}=  Run IPMI Command
+    ...  ${IPMI_RAW_CMD['LAN_Config_Params']['Get'][0]} ${CHANNEL_NUMBER} 0x01 0x00 0x00
+
+    ${authentication_type_support}=  Split String  ${ipmi_output}
+    # All bits:
+    # 1b = supported
+    # 0b = authentication type not available for use
+    # [5] - OEM proprietary (per OEM identified by the IANA OEM ID in the RMCP Ping Response)
+    # [4] - straight password / key
+    # [3] - reserved
+    # [2] - MD5
+    # [1] - MD2
+    # [0] - none
+    Should Contain Any  ${authentication_type_support[1]}  00  01  02  03  04  05
+
+
 *** Keywords ***
 
 Get Physical Network Interface Count
@@ -137,37 +163,6 @@ Get Physical Network Interface Count
     ${physical_interface_count}=  Get Length  ${mac_unique_list}
 
     [Return]  ${physical_interface_count}
-
-
-Set IPMI Inband Network Configuration
-    [Documentation]  Run sequence of standard IPMI command in-band and set
-    ...              the IP configuration.
-    [Arguments]  ${ip}  ${netmask}  ${gateway}  ${login}=${1}
-
-    # Description of argument(s):
-    # ip       The IP address to be set using ipmitool-inband.
-    # netmask  The Netmask to be set using ipmitool-inband.
-    # gateway  The Gateway address to be set using ipmitool-inband.
-
-    Run Inband IPMI Standard Command
-    ...  lan set ${CHANNEL_NUMBER} ipsrc static  login_host=${login}
-    Sleep  10
-    Run Inband IPMI Standard Command
-    ...  lan set ${CHANNEL_NUMBER} ipaddr ${ip}  login_host=${0}
-    Run Inband IPMI Standard Command
-    ...  lan set ${CHANNEL_NUMBER} netmask ${netmask}  login_host=${0}
-    Run Inband IPMI Standard Command
-    ...  lan set ${CHANNEL_NUMBER} defgw ipaddr ${gateway}  login_host=${0}
-
-
-Restore Configuration
-    [Documentation]  Restore the configuration to its pre-test state
-    ${length}=  Get Length  ${initial_lan_config}
-    Return From Keyword If  ${length} == ${0}
-
-    Set IPMI Inband Network Configuration  ${initial_lan_config['IP Address']}
-    ...  ${initial_lan_config['Subnet Mask']}
-    ...  ${initial_lan_config['Default Gateway IP']}  login=${0}
 
 
 Verify Channel Info

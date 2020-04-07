@@ -11,7 +11,7 @@ IPMI raw commands table:
 # Refer:
 # openbmc/meta-openbmc-machines/meta-openpower/meta-ibm/meta-witherspoon/recipe
 # s-phosphor/ipmi/phosphor-ipmi-host/cipher_list.json
-valid_ciphers = ['3', '17']
+valid_ciphers = ['17']
 unsupported_ciphers = ['1', '2', '15', '16']
 
 IPMI_RAW_CMD = {
@@ -108,6 +108,16 @@ IPMI_RAW_CMD = {
             "01 70 9b ae da 6f dd 9c b4 4c 36 be 66 c8 49 28",
             "Get GUID bytes 1 through 16.",
 
+        ]
+    },
+    'LAN_Config_Params':
+    {
+        'Get':
+        [
+            # raw command, expected output, comment
+            "0x0c 0x02",
+            "11 02",
+            "11 is Parameter revision, 02 is Configuration parameter data e.g. Cipher Suite Entry count",
         ]
     }
 }

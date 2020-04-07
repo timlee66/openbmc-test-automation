@@ -28,6 +28,7 @@
 * Local User Management(Redfish/IPMI)
 * DateTime
 * Event Logging
+* PLDM (Platform Level Data Model) via pldmtool
 
 **Debugging Supported List**
 * SOL collection
@@ -120,6 +121,8 @@ classified as follows:
 
 `gui/`: Contains test cases for web UI and security scanning tool automation.
 
+`pldm/`: Contains test cases for platform management subsystem (base, bios, fru, platform, OEM).
+
 `snmp/`: Contains test cases for SNMP (Simple Network Management Protocol)
          configuration testing.
 
@@ -165,17 +168,26 @@ version 2.3.1 or greater is required) or via Robot CLI command.
 
 * Execute a test suite:
     ```
-    $ robot -v OPENBMC_HOST:xx.xx.xx.xx  tests/test_basic_poweron.robot
+    $ robot -v OPENBMC_HOST:xx.xx.xx.xx redfish/extended/test_basic_ci.robot
     ```
 
-* Initialize the following environment variables which will be used during testing:
+* Initialize the following test variables which will be used during test execution:
+
+    User can forward declare as environment variables:
     ```
-    $ export OPENBMC_HOST=<openbmc machine ip address>
-    $ export OPENBMC_PASSWORD=<openbmc password>
+    $ export OPENBMC_HOST=<openbmc machine IP address/hostname>
     $ export OPENBMC_USERNAME=<openbmc username>
-    $ export OPENBMC_MODEL=[./data/Witherspoon.py, ./data/Palmetto.py, etc]
+    $ export OPENBMC_PASSWORD=<openbmc password>
     $ export IPMI_COMMAND=<Dbus/External>
-    $ export IPMI_PASSWORD=<External IPMI password>
+    ```
+
+    or
+
+    User can input as robot variables as part of the CLI command:
+    ```
+    -v OPENBMC_HOST:<openbmc machine IP address/hostname>
+    -v OPENBMC_USERNAME:<openbmc username>
+    -v OPENBMC_PASSWORD:<openbmc password>
     ```
 
 * For QEMU tests, set the following environment variables as well:
