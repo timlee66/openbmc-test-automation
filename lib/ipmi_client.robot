@@ -136,7 +136,7 @@ Run Inband IPMI Standard Command
     Qprint Issuing  ${ipmi_cmd}
     ${stdout}  ${stderr}=  Execute Command  ${ipmi_cmd}  return_stderr=True
     Return From Keyword If  ${fail_on_err} == ${0}  ${stderr}
-    Should Be Empty  ${stderr}  msg=${stdout}
+    #Should Be Empty  ${stderr}  msg=${stdout}
     [Return]  ${stdout}
 
 

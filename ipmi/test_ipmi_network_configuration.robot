@@ -146,6 +146,7 @@ Set IPMI Inband Network Configuration
 
     Run Inband IPMI Standard Command
     ...  lan set ${CHANNEL_NUMBER} ipsrc static  login_host=${login}
+    Sleep  10
     Run Inband IPMI Standard Command
     ...  lan set ${CHANNEL_NUMBER} ipaddr ${ip}  login_host=${0}
     Run Inband IPMI Standard Command
@@ -159,9 +160,15 @@ Restore Configuration
     ${length}=  Get Length  ${initial_lan_config}
     Return From Keyword If  ${length} == ${0}
 
-    Set IPMI Inband Network Configuration  ${network_configurations[0]['Address']}
-    ...  ${network_configurations[0]['SubnetMask']}
-    ...  ${initial_lan_config['Default Gateway IP']}  login=${0}
+    #Set IPMI Inband Network Configuration  ${network_configurations[0]['Address']}
+    #...  ${network_configurations[0]['SubnetMask']}
+    #...  ${initial_lan_config['Default Gateway IP']}  login=${0}
+
+    Run Keyword If  '${initial_lan_config['IP Address Source']}' == 'DHCP Address'
+    ...  Run Inband IPMI Standard Command
+         ...  lan set ${CHANNEL_NUMBER} ipsrc dhcp  login_host=${0}
+
+    Sleep  20
 
 
 Suite Setup Execution
@@ -169,20 +176,16 @@ Suite Setup Execution
 
     Redfish.Login
 
-    Run Inband IPMI Standard Command
-    ...  lan set ${CHANNEL_NUMBER} ipsrc static  login_host=${1}
-
     @{network_configurations}=  Get Network Configuration
     Set Suite Variable  @{network_configurations}
 
     ${initial_lan_config}=  Get LAN Print Dict  ${CHANNEL_NUMBER}  ipmi_cmd_type=inband
     Set Suite Variable  ${initial_lan_config}
 
-
 Test Teardown Execution
    [Documentation]  Test Teardown Execution.
 
+   Restore Configuration
    FFDC On Test Case Fail
    Create VLAN Via IPMI  off
-   Restore Configuration
 
