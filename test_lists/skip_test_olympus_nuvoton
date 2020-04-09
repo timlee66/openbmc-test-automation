@@ -99,6 +99,12 @@
 #  We already have Update Service test
 -e Redfish_BMC_Code_Update
 
+# Test cases are NA for Olympus
+-e Verify CPU Present
+-e Verify CPU Not Present
+-e Verify GPU Present
+-e Verify GPU Not Present
+
 -v MACHINE_TYPE:olympus-nuvoton
 -v log_file_path:log.txt
 -v FORCE_UPDATE:1

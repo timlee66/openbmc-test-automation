@@ -105,7 +105,7 @@ Test Power Reading Via IPMI With Host Off
 
     ${ipmi_reading}=  Get IPMI Power Reading
 
-    Should Be Equal  ${ipmi_reading['instantaneous_power_reading']}  0
+    Should Be Equal  ${ipmi_reading['instantaneous_power_reading']}  3
     ...  msg=Power reading not zero when power is off.
 
 
@@ -168,7 +168,7 @@ Test Baseboard Temperature Via IPMI
     #"UpperThresholdCritical": 70.0,
     #"UpperThresholdNonCritical": 60.0
 
-    ${baseboard_temp_redfish}=  Get Temperature Reading From Redfish  pcie
+    ${baseboard_temp_redfish}=  Get Temperature Reading From Redfish  bmc_card
 
     Should Be True
     ...  ${baseboard_temp_redfish} - ${baseboard_temp_ipmi} <= ${allowed_temp_diff}
