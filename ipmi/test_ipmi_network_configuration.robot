@@ -10,7 +10,7 @@ Library                ../lib/var_funcs.py
 Library                ../lib/bmc_network_utils.py
 
 Suite Setup            Suite Setup Execution
-Suite Teardown         Redfish.Logout
+Suite Teardown         Suite Teardown Execution
 Test Setup             Printn
 Test Teardown          Test Teardown Execution
 
@@ -160,13 +160,13 @@ Restore Configuration
     ${length}=  Get Length  ${initial_lan_config}
     Return From Keyword If  ${length} == ${0}
 
-    #Set IPMI Inband Network Configuration  ${network_configurations[0]['Address']}
-    #...  ${network_configurations[0]['SubnetMask']}
-    #...  ${initial_lan_config['Default Gateway IP']}  login=${0}
+    Set IPMI Inband Network Configuration  ${initial_lan_config['IP Address']}
+    ...  ${initial_lan_config['Subnet Mask']}
+    ...  ${initial_lan_config['Default Gateway IP']}  login=${0}
 
-    Run Keyword If  '${initial_lan_config['IP Address Source']}' == 'DHCP Address'
-    ...  Run Inband IPMI Standard Command
-         ...  lan set ${CHANNEL_NUMBER} ipsrc dhcp  login_host=${0}
+    #Run Keyword If  '${initial_lan_config['IP Address Source']}' == 'DHCP Address'
+    #...  Run Inband IPMI Standard Command
+    #     ...  lan set ${CHANNEL_NUMBER} ipsrc dhcp  login_host=${0}
 
     Sleep  20
 
@@ -182,10 +182,15 @@ Suite Setup Execution
     ${initial_lan_config}=  Get LAN Print Dict  ${CHANNEL_NUMBER}  ipmi_cmd_type=inband
     Set Suite Variable  ${initial_lan_config}
 
+Suite Teardown Execution
+    [Documentation]  Suite Teardown Execution.
+
+    Redfish.Logout
+
+
 Test Teardown Execution
    [Documentation]  Test Teardown Execution.
 
+   Create VLAN Via IPMI  off
    Restore Configuration
    FFDC On Test Case Fail
-   Create VLAN Via IPMI  off
-
