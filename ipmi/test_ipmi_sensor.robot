@@ -105,8 +105,8 @@ Test Power Reading Via IPMI With Host Off
 
     ${ipmi_reading}=  Get IPMI Power Reading
 
-    Should Be Equal  ${ipmi_reading['instantaneous_power_reading']}  3
-    ...  msg=Power reading not zero when power is off.
+    Should Be True  ${ipmi_reading['instantaneous_power_reading']} <= ${5}
+    ...  msg=Power reading not <= 5 when power is off.
 
 
 Test Power Reading Via IPMI With Host Booted
