@@ -46,6 +46,7 @@ Set MAC Address
 
 Get BMC IP Info
     [Documentation]  Get system IP address and prefix length.
+    [Arguments]  ${interface}=eth0
 
 
     # Get system IP address and prefix length details using "ip addr"
@@ -55,7 +56,7 @@ Get BMC IP Info
     #     inet xx.xx.xx.xx/24 brd xx.xx.xx.xx scope global eth0
 
     ${cmd_output}  ${stderr}  ${rc}=  BMC Execute Command
-    ...  /sbin/ip addr | grep eth0
+    ...  /sbin/ip addr | grep ${interface}
 
     # Get line having IP address details.
     ${lines}=  Get Lines Containing String  ${cmd_output}  inet
@@ -266,13 +267,13 @@ Configure Hostname
 
 Verify IP On BMC
     [Documentation]  Verify IP on BMC.
-    [Arguments]  ${ip}
+    [Arguments]  ${ip}  ${interface}
 
     # Description of argument(s):
     # ip  IP address to be verified (e.g. "10.7.7.7").
 
     # Get IP address details on BMC using IP command.
-    @{ip_data}=  Get BMC IP Info
+    @{ip_data}=  Get BMC IP Info  ${interface}
     Should Contain Match  ${ip_data}  ${ip}/*
     ...  msg=IP address does not exist.
 
@@ -353,7 +354,7 @@ Get Network Configuration
     #    "VLANId": 0
     #  }
 
-    ${resp}=  Redfish.Get  ${REDFISH_NW_ETH0_URI}
+    ${resp}=  Redfish.Get  ${REDFISH_NW_ETH1_URI}
     @{network_configurations}=  Get From Dictionary  ${resp.dict}  IPv4StaticAddresses
     [Return]  @{network_configurations}
 
@@ -513,7 +514,7 @@ Configure Network Settings On VLAN
     # Verify whether new IP address is populated on BMC system.
     # It should not allow to configure invalid settings.
     ${status}=  Run Keyword And Return Status
-    ...  Verify IP On BMC  ${ip_addr}
+    ...  Verify IP On BMC  ${ip_addr}  ${interface}
 
     Run Keyword If  '${expected_result}' == 'error'
     ...      Should Be Equal  ${status}  ${False}

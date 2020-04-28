@@ -20,9 +20,12 @@ Force Tags             IPMI_Network_Config
 *** Variables ***
 ${vlan_id_for_ipmi}     ${10}
 @{vlan_ids}             ${20}  ${30}
-${interface}            eth0
+${interface}            eth1
 ${ip}                   10.0.0.1
-${initial_lan_config}   &{EMPTY}
+${bmc_ip}               ${OPENBMC_HOST}
+${bmc_netmask}          ${DEF_SUBNET}
+&{priviate_setting}     IP Address=${bmc_ip}        Subnet Mask=${bmc_netmask}        Default Gateway IP=${bmc_ip}
+${initial_lan_config}   &{priviate_setting}
 ${vlan_resource}        ${NETWORK_MANAGER}action/VLAN
 ${netmask}              ${24}
 ${gateway}              0.0.0.0
@@ -52,7 +55,7 @@ Disable VLAN Via IPMI When Multiple VLAN Exist On BMC
     [Tags]   Disable_VLAN_Via_IPMI_When_LAN_And_VLAN_Exist_On_BMC
 
     FOR  ${id}  IN  @{vlan_ids}
-      Create VLAN  ${vlan_id_for_rest}
+      Create VLAN  ${vlan_id_for_rest}  eth1
     END
 
     Create VLAN Via IPMI  off
@@ -78,7 +81,7 @@ Configure IP On VLAN Via IPMI
 Create VLAN Via IPMI When LAN And VLAN Exist On BMC
     [Documentation]  Create VLAN Via IPMI When LAN And VLAN Exist On BMC.
     [Tags]   Create_VLAN_Via_IPMI_When_LAN_And_VLAN_Exist_On_BMC
-    [Setup]  Create VLAN  ${vlan_id_for_rest}
+    [Setup]  Create VLAN  ${vlan_id_for_rest}  eth1
 
     Create VLAN Via IPMI  ${vlan_id_for_ipmi}
 
@@ -110,16 +113,16 @@ Test Disabling Of VLAN Via IPMI
 
 
 Create VLAN When LAN And VLAN Exist With IP Address Configured
-   [Documentation]  Create VLAN when LAN and VLAN exist with IP address configured.
-   [Tags]  Create_VLAN_When_LAN_And_VLAN_Exist_With_IP_Address_Configured
-   [Setup]  Run Keywords  Create VLAN  ${vlan_id_for_rest}  AND  Configure Network Settings On VLAN
-   ...  ${vlan_id_for_rest}  ${ip}  ${netmask}  ${gateway}
+    [Documentation]  Create VLAN when LAN and VLAN exist with IP address configured.
+    [Tags]  Create_VLAN_When_LAN_And_VLAN_Exist_With_IP_Address_Configured
+    [Setup]  Run Keywords  Create VLAN  ${vlan_id_for_rest}  eth1  AND  Configure Network Settings On VLAN
+    ...  ${vlan_id_for_rest}  ${ip}  ${netmask}  ${gateway}  valid  eth1
 
-   Create VLAN Via IPMI   ${vlan_id_for_ipmi}
+    Create VLAN Via IPMI  ${vlan_id_for_ipmi}
 
-   ${lan_config}=  Get LAN Print Dict  ${CHANNEL_NUMBER}  ipmi_cmd_type=inband
-   Valid Value  lan_config['802.1q VLAN ID']  ['${vlan_id_for_ipmi}']
-   Valid Value  lan_config['IP Address']  ['${ip}']
+    ${lan_config}=  Get LAN Print Dict  ${CHANNEL_NUMBER}  ipmi_cmd_type=inband
+    Valid Value  lan_config['802.1q VLAN ID']  ['${vlan_id_for_ipmi}']
+    Valid Value  lan_config['IP Address']  ['${ip}']
 
 *** Keywords ***
 
