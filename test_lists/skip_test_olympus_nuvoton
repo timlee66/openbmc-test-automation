@@ -119,3 +119,4 @@
 -v IMAGE_HOST_FILE_PATH_0:bios6.tar
 -v IMAGE_HOST_FILE_PATH_1:bios7.tar
 -v BAD_IMAGES_DIR_PATH:./
+-v HOST_WORK_DIR:/home/cs20/work
