@@ -97,8 +97,8 @@ Create VLAN Via IPMI And Verify
 
     ${lan_config}=  Get LAN Print Dict  ${CHANNEL_NUMBER}  ipmi_cmd_type=inband
     Valid Value  lan_config['802.1q VLAN ID']  ['${vlan_id_for_ipmi}']
-    Valid Value  lan_config['IP Address']  ['${network_configurations[0]['Address']}']
-    Valid Value  lan_config['Subnet Mask']  ['${network_configurations[0]['SubnetMask']}']
+    Valid Value  lan_config['IP Address']  ['${initial_lan_config['IP Address']}']
+    Valid Value  lan_config['Subnet Mask']  ['${initial_lan_config['Subnet Mask']}']
 
 
 Test Disabling Of VLAN Via IPMI
@@ -179,8 +179,8 @@ Suite Setup Execution
 
     Redfish.Login
 
-    @{network_configurations}=  Get Network Configuration
-    Set Suite Variable  @{network_configurations}
+    #@{network_configurations}=  Get Network Configuration
+    #Set Suite Variable  @{network_configurations}
 
     ${initial_lan_config}=  Get LAN Print Dict  ${CHANNEL_NUMBER}  ipmi_cmd_type=inband
     Set Suite Variable  ${initial_lan_config}
