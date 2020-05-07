@@ -267,7 +267,7 @@ Configure Hostname
 
 Verify IP On BMC
     [Documentation]  Verify IP on BMC.
-    [Arguments]  ${ip}  ${interface}
+    [Arguments]  ${ip}  ${interface}=eth0
 
     # Description of argument(s):
     # ip  IP address to be verified (e.g. "10.7.7.7").
@@ -325,6 +325,7 @@ CLI Get Nameservers
 
 Get Network Configuration
     [Documentation]  Get network configuration.
+    [Arguments]  ${uri}=${REDFISH_NW_ETH0_URI}
     # Sample output:
     #{
     #  "@odata.context": "/redfish/v1/$metadata#EthernetInterface.EthernetInterface",
@@ -354,7 +355,7 @@ Get Network Configuration
     #    "VLANId": 0
     #  }
 
-    ${resp}=  Redfish.Get  ${REDFISH_NW_ETH1_URI}
+    ${resp}=  Redfish.Get  ${uri}
     @{network_configurations}=  Get From Dictionary  ${resp.dict}  IPv4StaticAddresses
     [Return]  @{network_configurations}
 
