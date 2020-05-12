@@ -4,19 +4,20 @@ r"""
 Contains PLDM-related constants.
 """
 
-PLDM_SUPPORTED_TYPES = ['base', 'platform', 'bios']
+PLDM_SUPPORTED_TYPES = ['base', 'platform', 'bios', 'fru', 'oem-ibm']
 
 # PLDM types.
 PLDM_TYPE_BASE = {'VALUE': '00', 'STRING': 'base'}
 PLDM_TYPE_PLATFORM = {'VALUE': '02', 'STRING': 'platform'}
 PLDM_TYPE_BIOS = {'VALUE': '03', 'STRING': 'bios'}
 PLDM_TYPE_FRU = {'VALUE': '04', 'STRING': 'fru'}
-PLDM_TYPE_OEM = {'VALUE': '3F', 'STRING': 'oem'}
+PLDM_TYPE_OEM = {'VALUE': '63', 'STRING': 'oem-ibm'}
 
 VERSION_BASE = {'VALUE': ['f1', 'f0', 'f0', '00'], 'STRING': '1.0.0'}
 VERSION_PLATFORM = {'VALUE': ['f1', 'f2', 'f0', '00'], 'STRING': '1.2.0'}
 VERSION_BIOS = {'VALUE': ['f1', 'f1', 'f1', '00'], 'STRING': '1.0.0'}
 VERSION_FRU = {'VALUE': ['f1', 'f0', 'f0', '00'], 'STRING': '1.0.0'}
+VERSION_OEM = {'VALUE': ['f1', 'f0', 'f0', '00'], 'STRING': '1.0.0'}
 
 
 PLDM_BASE_CMDS = ['2(GetTID)', '3(GetPLDMVersion)', '4(GetPLDMTypes)', '5(GetPLDMCommands)']
@@ -25,6 +26,11 @@ PLDM_BIOS_CMDS = ['1(GetBIOSTable)', '7(SetBIOSAttributeCurrentValue)',
                   '8(GetBIOSAttributeCurrentValueByHandle)', '12(GetDateTime)',
                   '13(SetDateTime)']
 PLDM_FRU_CMDS = ['1(GetFRURecordTableMetadata)', '2(GetFRURecordTable)']
+PLDM_OEM_CMDS = ['1(GetFileTable)', '4(ReadFile)', '5(WriteFile)', '6(ReadFileInToMemory)',
+                 '7(WriteFileFromMemory)', '8(ReadFileByTypeIntoMemory)',
+                 '9(WriteFileByTypeFromMemory)', '10(NewFileAvailable)',
+                 '11(ReadFileByType)', '12(WriteFileByType)', '13(FileAck)',
+                 '240(GetAlertStatus)']
 
 # PLDM command format.
 
@@ -112,19 +118,30 @@ RESPONSE_DICT_GETPDR_FRURECORDSETIDENTIFIER = {
     'datalength': ['10'],
     'pldmterminushandle': ['0'],
     'entitytype': ['System Board', 'Chassis front panel board (control panel)',
-                   'Management Controller', '208(OEM)', 'Power converter'],
-    'containerid': ['0', '1']}
+                   'Management Controller', '208(OEM)', 'Power converter',
+                   'System (logical)', 'System chassis (main enclosure)',
+                   'Chassis front panel board (control panel)'],
+    'containerid': ['0', '1', '2', '3']}
 
 RESPONSE_DICT_GETPDR_PDRENTITYASSOCIATION = {
     'pdrheaderversion': ['1'],
     'pdrtype': ['15'],
     'recordchangenumber': ['0'],
-    'containerid': ['1'],
+    'containerid': ['1', '2', '3'],
     'associationtype': ['Physical'],
-    'containerentitytype': ['System Board'],
+    'containerentitytype': ['System Board', 'System (logical)',
+                            'System chassis (main enclosure)']
 }
 
 PLDM_PDR_TYPES = {
     'PLDM_STATE_EFFECTER_PDR': '11',
     'PLDM_PDR_FRU_RECORD_SET': '20',
     'PLDM_PDR_ENTITY_ASSOCIATION': '15'}
+
+RESPONSE_LIST_GETBIOSTABLE_STRTABLE = [
+    'Allowed', 'Disabled', 'Enabled', 'IPv4DHCP', 'IPv4Static', 'Not Allowed',
+    'Perm', 'Temp', 'pvm-fw-boot-side', 'pvm-inband-code-update', 'pvm-os-boot-side',
+    'pvm-pcie-error-inject', 'pvm-surveillance', 'pvm-system-name', 'vmi-hostname',
+    'vmi-if-count', 'vmi-if0-ipv4-ipaddr', 'vmi-if0-ipv4-method',
+    'vmi-if0-ipv4-prefix-length', 'vmi-if1-ipv4-ipaddr', 'vmi-if1-ipv4-method',
+    'vmi-if1-ipv4-prefix-length', 'vmi-ipv4-gateway']
