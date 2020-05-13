@@ -16,6 +16,7 @@ ${readusercode_svf}   read_usercode.svf
 ${jtag_dev}           /dev/jtag0
 ${power_cycle_cmd}    /usr/sbin/i2cset -f -y 8 0x11 0xd9
 ${wrong_cpld}         0
+${program_cpld}       0
 
 *** Test Cases ***
 
@@ -34,10 +35,6 @@ Test Program CPLD
     [Documentation]  Test Program CPLD.
     [Tags]  Test_Program_CPLD
 
-    ${status}=  Run Keyword And Return Status  Variable Should Exist
-    ...  ${TEST_PROGRAM_CPLD}
-    ${program_cpld}=  Set Variable if  ${status} == ${TRUE}  ${TEST_PROGRAM_CPLD}  0
-
     Pass Execution If  ${wrong_cpld}==1  Wrong CPLD chip
     Pass Execution If  ${program_cpld}==0  skip programming cpld
 
@@ -46,20 +43,39 @@ Test Program CPLD
 
 *** Keywords ***
 
+Get File From SFTP Server
+    [Documentation]  SCP Get File.
+    [Arguments]      ${filename}
+
+    Shell Cmd
+    ...  scp ${SFTP_USER}@${SFTP_SERVER}:${SFTP_PATH}/${filename} ${filename}
+
+
+Put File To BMC
+    [Documentation]  SCP Put File.
+    [Arguments]      ${filename}
+
+    scp.Put File  ${filename}  /var/${filename}
+
 Suite Setup Execution
     [Documentation]  Suite Setup Exection.
 
-    OperatingSystem.File Should Exist  ${readid_svf}
-    OperatingSystem.File Should Exist  ${readusercode_svf}
-    OperatingSystem.File Should Exist  ${cpld_firmware1}
-    OperatingSystem.File Should Exist  ${cpld_firmware2}
+    ${status}=  Run Keyword And Return Status  Variable Should Exist
+    ...  ${TEST_PROGRAM_CPLD}
+    ${value}=  Set Variable if  ${status} == ${TRUE}  ${TEST_PROGRAM_CPLD}  0
+    Set Global Variable  ${program_cpld}  ${value}
+
+    Get File From SFTP Server  ${readid_svf}
+    Run KeyWord If  ${program_cpld} == 1  Get File From SFTP Server  ${readusercode_svf}
+    Run KeyWord If  ${program_cpld} == 1  Get File From SFTP Server  ${cpld_firmware1}
+    Run KeyWord If  ${program_cpld} == 1  Get File From SFTP Server  ${cpld_firmware2}
 
     scp.Open connection  ${OPENBMC_HOST}  username=${OPENBMC_USERNAME}
     ...  password=${OPENBMC_PASSWORD}
-    scp.Put File  ${readid_svf}  /var/${readid_svf}
-    scp.Put File  ${readusercode_svf}  /var/${readusercode_svf}
-    scp.Put File  ${cpld_firmware1}  /var/${cpld_firmware1}
-    scp.Put File  ${cpld_firmware2}  /var/${cpld_firmware2}
+    Put File To BMC  ${readid_svf}
+    Run KeyWord If  ${program_cpld} == 1  Put File To BMC  ${readusercode_svf}
+    Run KeyWord If  ${program_cpld} == 1  Put File To BMC  ${cpld_firmware1}
+    Run KeyWord If  ${program_cpld} == 1  Put File To BMC  ${cpld_firmware2}
     Sleep  5s
     scp.Close Connection
 
