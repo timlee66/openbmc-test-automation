@@ -182,7 +182,7 @@ Add Fourth Octet Threshold IP And Verify
     [Teardown]  Run Keywords
     ...  Delete IP Address  10.7.7.254  AND  Test Teardown Execution
 
-     Add IP Address  10.7.7.254 ${test_subnet_mask}  ${test_gateway}
+     Add IP Address  10.7.7.254  ${test_subnet_mask}  ${test_gateway}
 
 Add Fourth Octet Lowest IP And Verify
     [Documentation]  Add fourth octet lowest IP and verify.
