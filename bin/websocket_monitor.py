@@ -216,6 +216,7 @@ def open_socket(openbmc_host, openbmc_username, openbmc_password):
     session = login(openbmc_host, openbmc_username, openbmc_password)
     qprint_timen("Registering websocket handlers.")
     cookies = session.cookies.get_dict()
+    header = {'Sec-WebSocket-Protocol':  cookies["XSRF-TOKEN"]}
     cookies = sprint_var(cookies, fmt=no_header() | strip_brackets(),
                          col1_width=0, trailing_char="",
                          delim="=").replace("\n", ";")
@@ -226,6 +227,7 @@ def open_socket(openbmc_host, openbmc_username, openbmc_password):
                                            on_error=on_error,
                                            on_close=on_close,
                                            on_open=on_open,
+                                           header=header,
                                            cookie=cookies)
     qprint_timen("Completed registering of websocket handlers.")
     websocket_obj.run_forever(sslopt={"cert_reqs": ssl.CERT_NONE})
