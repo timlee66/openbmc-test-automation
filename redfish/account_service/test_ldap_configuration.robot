@@ -324,7 +324,7 @@ Verify Authorization With Null Privilege
 
     Update LDAP Config And Verify Set Host Name  Invalid_LDAP_Group_Name  ${EMPTY}
     ...  [${HTTP_FORBIDDEN}]
-    ...  extra_status_codes=[${HTTP_INTERNAL_SERVER_ERROR}]
+    #...  extra_status_codes=[${HTTP_INTERNAL_SERVER_ERROR}]
 
 
 Verify Authorization With Invalid Privilege
