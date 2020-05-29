@@ -81,7 +81,7 @@ Update User Privilege Via Redfish And Verify Using IPMI
     Redfish.Patch  /redfish/v1/AccountService/Accounts/${random_username}  body=&{payload}
 
     # Verify new user privilege level via IPMI.
-    ${resp}=  Run IPMI Standard Command  user list
+    ${resp}=  Run IPMI Standard Command  user list ${CHANNEL_NUMBER}
 
     # Example of response data:
     # ID  Name             Callin  Link Auth  IPMI Msg   Channel Priv Limit
@@ -166,7 +166,7 @@ Update User Privilege Via IPMI And Verify Using Redfish
 
     # Change user privilege to opetrator using IPMI.
     Run IPMI Standard Command
-    ...  user priv ${userid} ${operator_level_priv}
+    ...  user priv ${userid} ${operator_level_priv} ${CHANNEL_NUMBER}
 
     # Verify new user privilege level via Redfish.
     ${privilege}=  Redfish_Utils.Get Attribute

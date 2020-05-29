@@ -12,6 +12,7 @@ Resource             ../../lib/external_intf/management_console_utils.robot
 Resource             ../../lib/redfish_code_update_utils.robot
 Resource             ../../lib/boot_utils.robot
 Resource             ../../syslib/utils_os.robot
+Resource             ../../lib/code_update_utils.robot
 
 Suite Setup          Suite Setup Execution
 Suite Teardown       Redfish.Logout
@@ -41,7 +42,7 @@ Discover BMC Pre And Post Reboot
 
 
 Disable AvahiDaemon And Discover BMC After Reboot
-    [Documentation]  BMC should be discoverable in next reboot even after disabling Avahi deamon.
+    [Documentation]  BMC should be discoverable in next reboot even after disabling Avahi daemon.
     [Tags]  Disable_AvahiDaemon_And_Discover_BMC_After_Reboot
     [Template]  Set Daemon And Discover BMC After Reboot
 
@@ -50,28 +51,37 @@ Disable AvahiDaemon And Discover BMC After Reboot
     _obmc_redfish._tcp   True
 
 
-Discover BMC Pre And Post Firmware Update Of Same Build
-    [Documentation]  Discover BMC, when code update occurs for same build.
-    [Tags]  Discover_BMC_Pre_And_Post_Firmware_Update_Of_Same_Build
+Discover BMC Pre And Post Firmware Update Of Same Release
+    [Documentation]  Discover BMC, when firmware update occurs for same release.
+    [Tags]  Discover_BMC_Pre_And_Post_Firmware_Update_Of_Same_Release
     [Template]  Discover BMC Pre And Post Firmware Update
 
-    # Service type   Service type
-    _obmc_rest._tcp  _obmc_redfish._tcp
+    # Service type   Service type        status
+    _obmc_rest._tcp  _obmc_redfish._tcp  True
 
 
-Discover BMC Pre And Post Firmware Update Of Different Build
-    [Documentation]  Discover BMC, when code update occurs for different release.
-    [Tags]  Discover_BMC_Pre_And_Post_Firmware_Update_Of_Different_Build
+Discover BMC Pre And Post Firmware Update Of Different Release
+    [Documentation]  Discover BMC, when firmware update occurs for different release.
+    [Tags]  Discover_BMC_Pre_And_Post_Firmware_Update_Of_Different_Release
     [Template]  Discover BMC Pre And Post Firmware Update
 
-    # Service type   Service type
-    _obmc_rest._tcp  _obmc_redfish._tcp
+    # Service type   Service type        status
+    _obmc_rest._tcp  _obmc_redfish._tcp  True
 
 
-Discover BMC Pre And While Host Boot InProgress
-    [Documentation]  Discover BMC, while Host boot in progress.
-    [Tags]  Discover_BMC_Pre_And_While_Host_Boot_InProgress
-    [Template]  Discover BMC Before And During Host Boot
+Discover BMC Fail After Firmware Update Of Different Release
+    [Documentation]  Discover BMC fail, when firmware update occurs for different release.
+    [Tags]  Discover_BMC_Fail_After_Firmware_Update_Of_Different_Release
+    [Template]  Discover BMC Pre And Post Firmware Update
+
+    # Service type   Service type        status
+    _obmc_rest._tcp  _obmc_redfish._tcp  False
+
+
+Discover BMC Pre And Post When Host Boot InProgress
+    [Documentation]  Discover BMC, when Host boot in progress.
+    [Tags]  Discover_BMC_Pre_And_Post_When_Host_Boot_InProgress
+    [Template]  Discover BMC Pre And Post When Host Boot
 
     # Service type   Service type
     _obmc_rest._tcp  _obmc_redfish._tcp
@@ -165,23 +175,47 @@ Set Daemon And Discover BMC After Reboot
     ...  Verify Existence Of BMC Record From List  ${service_type}
 
 
+Redfish Update Firmware
+    [Documentation]  Update the BMC firmware via redfish interface and verify the bmc version
+    ...              and apply time.
+    [Arguments]  ${apply_time}
+
+    # Description of argument(s):
+    # apply_time    ApplyTime allowed values (e.g. "OnReset", "Immediate").
+
+    ${post_code_update_actions}=  Get Post Boot Action
+    ${state}=  Get Pre Reboot State
+    Rprint Vars  state
+    Set ApplyTime  policy=${apply_Time}
+    Redfish Upload Image And Check Progress State
+    Run Key  ${post_code_update_actions['BMC image']['${apply_time}']}
+    Redfish.Login
+    Redfish Verify BMC Version  ${IMAGE_FILE_PATH}
+    Verify Get ApplyTime  ${apply_time}
+
+
 Discover BMC Pre And Post Firmware Update
     [Documentation]  Discover BMC, After code update.
-    [Arguments]  ${service_type1}  ${service_type2}
+    [Arguments]  ${service_type1}  ${service_type2}  ${status}
 
     # Description of argument(s):
     # service_type     BMC service type e.g.
     #                  (REST Service = _obmc_rest._tcp, Redfish Service = _obmc_redfish._tcp).
+    # status           True or False
 
     Valid File Path  IMAGE_FILE_PATH
     Verify Existence Of BMC Record From List  ${service_type1}
     Verify Existence Of BMC Record From List  ${service_type2}
-    Redfish Update Firmware  apply_time=Immediate   image_type=BMC image
-    Verify Existence Of BMC Record From List  ${service_type1}
-    Verify Existence Of BMC Record From List  ${service_type2}
+    Redfish Update Firmware  apply_time=Immediate
+    ${keyword_status}=  Run Keyword And Return Status
+    ...  Verify Existence Of BMC Record From List  ${service_type1}
+    Should Be Equal  '${status}'  '${keyword_status}'
+    ${keyword_status}=  Run Keyword And Return Status
+    ...  Verify Existence Of BMC Record From List  ${service_type2}
+    Should Be Equal  '${status}'  '${keyword_status}'
 
 
-Discover BMC Before And During Host Boot
+Discover BMC Pre And Post When Host Boot
     [Documentation]  Discover BMC, when host boot in progress.
     [Arguments]  ${service_type1}  ${service_type2}
 

@@ -1,7 +1,7 @@
 *** Settings ***
 
 
-Documentation    Verify Redfish tool functionality.
+Documentation     Suite to test local user management.
 
 Library           OperatingSystem
 Library           String
@@ -10,6 +10,7 @@ Library           Collections
 Resource          ../../lib/resource.robot
 Resource          ../../lib/bmc_redfish_resource.robot
 Resource          ../../lib/openbmc_ffdc.robot
+Resource          ../../lib/certificate_utils.robot
 
 
 Suite Setup       Suite Setup Execution
@@ -17,32 +18,11 @@ Suite Setup       Suite Setup Execution
 
 *** Variables ***
 
+${root_cmd_args} =  SEPARATOR=
+...  redfishtool raw -r ${OPENBMC_HOST} -u ${OPENBMC_USERNAME} -p ${OPENBMC_PASSWORD} -S Always
 
-${root_cmd_args}       redfishtool raw -r ${OPENBMC_HOST} -u ${OPENBMC_USERNAME} -p ${OPENBMC_PASSWORD} -S Always
-${min_number_sensors}  ${15}
 
 *** Test Cases ***
-
-
-Verify Redfishtool Sensor Commands
-    [Documentation]  Verify redfishtool's sensor commands.
-    [Tags]  Verify_Redfishtool_Sensor_Commands
-
-    ${sensor_status}=  Redfishtool Get  /redfish/v1/Chassis/chassis/Sensors
-    ${json_object}=  Evaluate  json.loads('''${sensor_status}''')  json
-    Should Be True  ${json_object["Members@odata.count"]} > ${min_number_sensors}
-    ...  msg=There should be at least ${min_number_sensors} sensors.
-
-
-Verify Redfishtool Health Check Commands
-    [Documentation]  Verify redfishtool's health check command.
-    [Tags]  Verify_Redfishtool_Health_Check_Commands
-
-    ${chassis_data}=  Redfishtool Get  /redfish/v1/Chassis/chassis/
-    ${json_object}=  Evaluate  json.loads('''${chassis_data}''')  json
-    ${status}=  Set Variable  ${json_object["Status"]}
-    Should Be Equal  OK  ${status["Health"]}
-    ...  msg=Health status should be OK.
 
 
 Verify Redfishtool Create Users
@@ -74,7 +54,67 @@ Verify Redfishtool Delete Users
     Should Be True  ${status} == False
 
 
+Verify Redfishtool Login With Deleted Redfish Users
+    [Documentation]  Verify login with deleted user via Redfishtool.
+    [Tags]  Verify_Redfishtool_Login_With_Deleted_Redfish_Users
+
+    Redfishtool Create User  "UserT100"  "TestPwd123"  "Operator"  true
+    Redfishtool Delete User  "UserT100"
+    Redfishtool Access Resource  /redfish/v1/AccountService/Accounts  "UserT100"  "TestPwd123"
+    ...  ${HTTP_UNAUTHORIZED}
+
+
+Verify Redfishtool Error Upon Creating Same Users With Different Privileges
+    [Documentation]  Verify error upon creating same users with different privileges.
+    [Tags]  Verify_Redfishtool_Error_Upon_Creating_Same_Users_With_Different_Privileges
+    [Teardown]  Redfishtool Delete User  "UserT100"
+
+    Redfishtool Create User  "UserT100"  "TestPwd123"  "Operator"  true
+    Redfishtool Create User  "UserT100"  "TestPwd123"  "Administrator"  true
+    ...  expected_error=${HTTP_BAD_REQUEST}
+
+
+Verify Redfishtool Admin User Privilege
+    [Documentation]  Verify privilege of admin user.
+    [Tags]  Verify_Redfishtool_Admin_User_Privilege
+    [Teardown]  Run Keywords  Redfishtool Delete User  "UserT100"  AND
+    ...  Redfishtool Delete User  "UserT101"
+
+    Redfishtool Create User  "UserT100"  "TestPwd123"  "Administrator"  true
+
+    # Verify if an user can be added by admin
+    Redfishtool Create User  "UserT101"  "TestPwd123"  "Operator"  true  "UserT100"  "TestPwd123"
+
+
+Verify Redfishtool ReadOnly User Privilege
+    [Documentation]  Verify Redfishtool ReadOnly user privilege works.
+    [Tags]  Verify_Redfishtool_ReadOnly_User_Privilege
+    [Teardown]  Redfishtool Delete User  "UserT100"
+
+    Redfishtool Create User  "UserT100"  "TestPwd123"  "ReadOnly"  true
+    Redfishtool Access Resource  /redfish/v1/Systems/  "UserT100"  "TestPwd123"
+
+    Redfishtool Create User
+    ...  "UserT101"  "TestPwd123"  "Operator"  true  "UserT100"  "TestPwd123"  ${HTTP_FORBIDDEN}
+
+
 *** Keywords ***
+
+
+Redfishtool Access Resource
+    [Documentation]  Access resource.
+    [Arguments]  ${uri}   ${login_user}  ${login_pasword}  ${expected_error}=""
+
+    # Description of argument(s):
+    # uri            URI for resource access.
+    # login_user     The login user name used other than default root user.
+    # login_pasword  The login password.
+    # expected_error Expected error optionally provided in testcase (e.g. 401 /
+    #                authentication error, etc. )
+
+    ${user_cmd_args}=  Set Variable
+    ...  redfishtool raw -r ${OPENBMC_HOST} -u ${login_user} -p ${login_pasword} -S Always
+    Redfishtool Get  ${uri}  ${user_cmd_args}  ${expected_error}
 
 
 Is HTTP error Expected
@@ -85,13 +125,15 @@ Is HTTP error Expected
     # cmd_output      Output of an HTTP operation.
     # error_expected  Expected error.
 
-    ${error_expected}=  Evaluate  "${error_expected}" in """${cmd_output}"""
-    Should Be True  ${error_expected} == True
+    @{words} =  Split String  ${error_expected}  ,
+    @{errorString}=  Split String  ${cmd_output}  ${SPACE}
+    Should Contain Any  ${errorString}  @{words}
 
 
 Redfishtool Create User
     [Documentation]  Create new user.
-    [Arguments]  ${user_name}  ${password}  ${roleID}  ${enable}  ${expected_error}=""
+    [Arguments]  ${user_name}  ${password}  ${roleID}  ${enable}  ${login_user}=""  ${login_pasword}=""
+    ...  ${expected_error}=""
 
     # Description of argument(s):
     # user_name      The user name (e.g. "test", "robert", etc.).
@@ -101,9 +143,15 @@ Redfishtool Create User
     # expected_error Expected error optionally provided in testcase (e.g. 401 /
     #                authentication error, etc. )
 
-    ${data}=  Set Variable  '{"UserName":${user_name},"Password":${password},"RoleId":${roleId},"Enabled":${enable}}'
-    Redfishtool Post  ${data}  /redfish/v1/AccountService/Accounts  ${root_cmd_args}
-    ...  ${expected_error}
+    ${user_cmd_args}=  Set Variable
+    ...  redfishtool raw -r ${OPENBMC_HOST} -u ${login_user} -p ${login_pasword} -S Always
+    ${data}=  Set Variable
+    ...  '{"UserName":${user_name},"Password":${password},"RoleId":${roleId},"Enabled":${enable}}'
+    Run Keyword If  ${login_user} == ""
+    ...   Redfishtool Post  ${data}  /redfish/v1/AccountService/Accounts  ${root_cmd_args}  ${expected_error}
+    ...   ELSE
+    ...   Redfishtool Post  ${data}  /redfish/v1/AccountService/Accounts  ${user_cmd_args}  ${expected_error}
+
 
 Redfishtool Update User Role
     [Documentation]  Update user role.
@@ -118,8 +166,15 @@ Redfishtool Update User Role
     # expected_error Expected error optionally provided in testcase (e.g. 401 /
     #                authentication error, etc. )
 
-    Redfishtool Patch  '{"RoleId":${newRole}}'  /redfish/v1/AccountService/Accounts/${user_name}
-    ...  ${root_cmd_args}  ${expected_error}
+    ${user_cmd_args}=  Set Variable
+    ...  redfishtool raw -r ${OPENBMC_HOST} -u ${login_user} -p ${login_pasword} -S Always
+    Run Keyword If  ${login_user} == ""
+    ...   Redfishtool Patch  '{"RoleId":${newRole}}'
+          ...  /redfish/v1/AccountService/Accounts/${user_name}  ${root_cmd_args}  ${expected_error}
+    ...   ELSE
+    ...   Redfishtool Patch  '{"RoleId":${newRole}}'
+          ...  /redfish/v1/AccountService/Accounts/${user_name}  ${user_cmd_args}  ${expected_error}
+
 
 Redfishtool Delete User
     [Documentation]  Delete an user.
@@ -156,6 +211,7 @@ Redfishtool Verify User Name Exists
 
     ${status}=  Run Keyword And Return Status  redfishtool Get
     ...  /redfish/v1/AccountService/Accounts/${user_name}
+
     [return]  ${status}
 
 
@@ -171,6 +227,7 @@ Redfishtool Get
 
     ${rc}  ${cmd_output}=  Run and Return RC and Output  ${cmd_args} GET ${uri}
     Run Keyword If  ${rc} != 0  Is HTTP error Expected  ${cmd_output}  ${expected_error}
+
     [Return]  ${cmd_output}
 
 
@@ -188,6 +245,7 @@ Redfishtool Post
 
     ${rc}  ${cmd_output}=  Run and Return RC and Output  ${cmd_args} POST ${uri} --data=${payload}
     Run Keyword If  ${rc} != 0  Is HTTP error Expected  ${cmd_output}  ${expected_error}
+
     [Return]  ${cmd_output}
 
 
@@ -204,6 +262,7 @@ Redfishtool Patch
 
     ${rc}  ${cmd_output}=  Run and Return RC and Output  ${cmd_args} PATCH ${uri} --data=${payload}
     Run Keyword If  ${rc} != 0  Is HTTP error Expected  ${cmd_output}  ${expected_error}
+
     [Return]  ${cmd_output}
 
 
@@ -219,6 +278,7 @@ Redfishtool Delete
 
     ${rc}  ${cmd_output}=  Run and Return RC and Output  ${cmd_args} DELETE ${uri}
     Run Keyword If  ${rc} != 0  Is HTTP error Expected  ${cmd_output}  ${expected_error}
+
     [Return]  ${cmd_output}
 
 

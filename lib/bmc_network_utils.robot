@@ -4,6 +4,7 @@ Resource                ../lib/connection_client.robot
 Resource                ../lib/boot_utils.robot
 Library                 ../lib/gen_misc.py
 Library                 ../lib/utils.py
+Library                 ../lib/bmc_network_utils.py
 
 *** Variables ***
 # MAC input from user.
@@ -19,10 +20,13 @@ Check And Reset MAC
     # Description of argument(s):
     # mac_address  The mac address (e.g. 00:01:6c:80:02:28).
 
+    ${active_channel_config}=  Get Active Channel Config
+    ${ethernet_interface}=  Set Variable  ${active_channel_config['${CHANNEL_NUMBER}']['name']}
+
     Should Not Be Empty  ${mac_address}
     Open Connection And Log In
     ${bmc_mac_addr}  ${stderr}  ${rc}=  BMC Execute Command
-    ...  cat /sys/class/net/eth0/address
+    ...  cat /sys/class/net/${ethernet_interface}/address
     Run Keyword If  '${mac_address.lower()}' != '${bmc_mac_addr.lower()}'
     ...  Set MAC Address
 
@@ -34,20 +38,21 @@ Set MAC Address
     # Description of argument(s):
     # mac_address  The mac address (e.g. 00:01:6c:80:02:28).
 
+    ${active_channel_config}=  Get Active Channel Config
+    ${ethernet_interface}=  Set Variable  ${active_channel_config['${CHANNEL_NUMBER}']['name']}
+
     Write  fw_setenv ethaddr ${mac_address}
     OBMC Reboot (off)
 
     # Take SSH session post BMC reboot.
     Open Connection And Log In
     ${bmc_mac_addr}  ${stderr}  ${rc}=  BMC Execute Command
-    ...  cat /sys/class/net/eth0/address
+    ...  cat /sys/class/net/${ethernet_interface}/address
     Should Be Equal  ${bmc_mac_addr}  ${mac_address}  ignore_case=True
 
 
 Get BMC IP Info
     [Documentation]  Get system IP address and prefix length.
-    [Arguments]  ${interface}=eth0
-
 
     # Get system IP address and prefix length details using "ip addr"
     # Sample Output of "ip addr":
@@ -55,8 +60,10 @@ Get BMC IP Info
     #     link/ether xx:xx:xx:xx:xx:xx brd ff:ff:ff:ff:ff:ff
     #     inet xx.xx.xx.xx/24 brd xx.xx.xx.xx scope global eth0
 
+    ${active_channel_config}=  Get Active Channel Config
+    ${ethernet_interface}=  Set Variable  ${active_channel_config['${CHANNEL_NUMBER}']['name']}
     ${cmd_output}  ${stderr}  ${rc}=  BMC Execute Command
-    ...  /sbin/ip addr | grep ${interface}
+    ...  /sbin/ip addr | grep ${ethernet_interface}
 
     # Get line having IP address details.
     ${lines}=  Get Lines Containing String  ${cmd_output}  inet
@@ -97,8 +104,11 @@ Get BMC MAC Address
     # Sample output of "ip addr | grep ether":
     # link/ether xx.xx.xx.xx.xx.xx brd ff:ff:ff:ff:ff:ff
 
+    ${active_channel_config}=  Get Active Channel Config
+    ${ethernet_interface}=  Set Variable  ${active_channel_config['${CHANNEL_NUMBER}']['name']}
+
     ${cmd_output}  ${stderr}  ${rc}=  BMC Execute Command
-    ...  /sbin/ip addr | grep ether
+    ...  /sbin/ip addr | grep ${ethernet_interface} -A 1 | grep ether
 
     # Split the line and return MAC address.
     # Split list data:
@@ -267,13 +277,13 @@ Configure Hostname
 
 Verify IP On BMC
     [Documentation]  Verify IP on BMC.
-    [Arguments]  ${ip}  ${interface}=eth0
+    [Arguments]  ${ip}
 
     # Description of argument(s):
     # ip  IP address to be verified (e.g. "10.7.7.7").
 
     # Get IP address details on BMC using IP command.
-    @{ip_data}=  Get BMC IP Info  ${interface}
+    @{ip_data}=  Get BMC IP Info
     Should Contain Match  ${ip_data}  ${ip}/*
     ...  msg=IP address does not exist.
 
@@ -355,7 +365,10 @@ Get Network Configuration
     #    "VLANId": 0
     #  }
 
-    ${resp}=  Redfish.Get  ${uri}
+
+    ${active_channel_config}=  Get Active Channel Config
+    ${resp}=  Redfish.Get  ${REDFISH_NW_ETH_IFACE}${active_channel_config['${CHANNEL_NUMBER}']['name']}
+
     @{network_configurations}=  Get From Dictionary  ${resp.dict}  IPv4StaticAddresses
     [Return]  @{network_configurations}
 
@@ -390,7 +403,10 @@ Add IP Address
     Append To List  ${patch_list}  ${ip_data}
     ${data}=  Create Dictionary  IPv4StaticAddresses=${patch_list}
 
-    Redfish.patch  ${REDFISH_NW_ETH0_URI}  body=&{data}
+    ${active_channel_config}=  Get Active Channel Config
+    ${ethernet_interface}=  Set Variable  ${active_channel_config['${CHANNEL_NUMBER}']['name']}
+
+    Redfish.patch  ${REDFISH_NW_ETH_IFACE}${ethernet_interface}  body=&{data}
     ...  valid_status_codes=[${valid_status_codes}]
 
     Return From Keyword If  '${valid_status_codes}' != '${HTTP_OK}'
@@ -430,7 +446,10 @@ Delete IP Address
     # Run patch command only if given IP is found on BMC
     ${data}=  Create Dictionary  IPv4StaticAddresses=${patch_list}
 
-    Redfish.patch  ${REDFISH_NW_ETH0_URI}  body=&{data}
+    ${active_channel_config}=  Get Active Channel Config
+    ${ethernet_interface}=  Set Variable  ${active_channel_config['${CHANNEL_NUMBER}']['name']}
+
+    Redfish.patch  ${REDFISH_NW_ETH_IFACE}${ethernet_interface}  body=&{data}
     ...  valid_status_codes=[${valid_status_codes}]
 
     # Note: Network restart takes around 15-18s after patch request processing
@@ -515,7 +534,7 @@ Configure Network Settings On VLAN
     # Verify whether new IP address is populated on BMC system.
     # It should not allow to configure invalid settings.
     ${status}=  Run Keyword And Return Status
-    ...  Verify IP On BMC  ${ip_addr}  ${interface}
+    ...  Verify IP On BMC  ${ip_addr}
 
     Run Keyword If  '${expected_result}' == 'error'
     ...      Should Be Equal  ${status}  ${False}

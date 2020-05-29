@@ -97,9 +97,8 @@ Create VLAN Via IPMI And Verify
 
     ${lan_config}=  Get LAN Print Dict  ${CHANNEL_NUMBER}  ipmi_cmd_type=inband
     Valid Value  lan_config['802.1q VLAN ID']  ['${vlan_id_for_ipmi}']
-    Valid Value  lan_config['IP Address']  ['${initial_lan_config['IP Address']}']
-    Valid Value  lan_config['Subnet Mask']  ['${initial_lan_config['Subnet Mask']}']
-
+    Valid Value  lan_config['IP Address']  ['${ip_address}']
+    Valid Value  lan_config['Subnet Mask']  ['${subnet_mask}']
 
 Test Disabling Of VLAN Via IPMI
     [Documentation]  Disable VLAN and verify via IPMI.
@@ -123,6 +122,28 @@ Create VLAN When LAN And VLAN Exist With IP Address Configured
     ${lan_config}=  Get LAN Print Dict  ${CHANNEL_NUMBER}  ipmi_cmd_type=inband
     Valid Value  lan_config['802.1q VLAN ID']  ['${vlan_id_for_ipmi}']
     Valid Value  lan_config['IP Address']  ['${ip}']
+
+
+Create Multiple VLANs Via IPMI And Verify
+    [Documentation]  Create multiple VLANs through IPMI.
+    [Tags]    Create_Multiple_VLANs_Via_IPMI_And_Verify
+
+    FOR  ${vlan_id}  IN  @{vlan_ids}
+
+      Create VLAN Via IPMI  ${vlan_id}
+
+      ${lan_config}=  Get LAN Print Dict  ${CHANNEL_NUMBER}  ipmi_cmd_type=inband
+
+      # Validate VLAN creation.
+      Valid Value  lan_config['802.1q VLAN ID']  ['${vlan_id}']
+
+      # Validate existing IP address.
+      Valid Value  lan_config['IP Address']  ['${ip_address}']
+
+      # Validate existing subnet mask.
+      Valid Value  lan_config['Subnet Mask']  ['${subnet_mask}']
+    END
+
 
 *** Keywords ***
 
@@ -149,45 +170,44 @@ Set IPMI Inband Network Configuration
 
     Run Inband IPMI Standard Command
     ...  lan set ${CHANNEL_NUMBER} ipsrc static  login_host=${login}
-    Sleep  10
+    Sleep  20
     Run Inband IPMI Standard Command
     ...  lan set ${CHANNEL_NUMBER} ipaddr ${ip}  login_host=${0}
     Run Inband IPMI Standard Command
     ...  lan set ${CHANNEL_NUMBER} netmask ${netmask}  login_host=${0}
     Run Inband IPMI Standard Command
     ...  lan set ${CHANNEL_NUMBER} defgw ipaddr ${gateway}  login_host=${0}
+    Sleep  20
 
 
 Restore Configuration
-    [Documentation]  Restore the configuration to its pre-test state
+    [Documentation]  Restore the configuration to its pre-test state.
     ${length}=  Get Length  ${initial_lan_config}
     Return From Keyword If  ${length} == ${0}
 
-    Set IPMI Inband Network Configuration  ${initial_lan_config['IP Address']}
-    ...  ${initial_lan_config['Subnet Mask']}
+    Set IPMI Inband Network Configuration  ${ip_address}  ${subnet_mask}
     ...  ${initial_lan_config['Default Gateway IP']}  login=${0}
-
-    #Run Keyword If  '${initial_lan_config['IP Address Source']}' == 'DHCP Address'
-    #...  Run Inband IPMI Standard Command
-    #     ...  lan set ${CHANNEL_NUMBER} ipsrc dhcp  login_host=${0}
-
-    Sleep  20
 
 
 Suite Setup Execution
     [Documentation]  Suite Setup Execution.
 
     Redfish.Login
+    Run Inband IPMI Standard Command
+    ...  lan set ${CHANNEL_NUMBER} ipsrc static  login_host=${1}
 
-    #@{network_configurations}=  Get Network Configuration
-    #Set Suite Variable  @{network_configurations}
+    ${host_name}  ${ip_address}=  Get Host Name IP  host=${OPENBMC_HOST}
+    Set Suite Variable  ${ip_address}
 
-    ${initial_lan_config}=  Get LAN Print Dict  ${CHANNEL_NUMBER}  ipmi_cmd_type=inband
-    Set Suite Variable  ${initial_lan_config}
+    @{network_configurations}=  Get Network Configuration
+    FOR  ${network_configuration}  IN  @{network_configurations}
+       Run Keyword If  '${network_configuration['Address']}' == '${ip_address}'
+       ...  Run Keywords  Set Suite Variable  ${subnet_mask}   ${network_configuration['SubnetMask']}  AND
+       ...  Exit For Loop
+    END
 
 Suite Teardown Execution
     [Documentation]  Suite Teardown Execution.
-
     Redfish.Logout
 
 

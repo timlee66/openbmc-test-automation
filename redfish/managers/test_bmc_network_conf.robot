@@ -24,6 +24,7 @@ ${broadcast_ip}            10.7.7.255
 ${loopback_ip}             127.0.0.2
 ${multicast_ip}            224.6.6.6
 ${out_of_range_ip}         10.7.7.256
+${test_ipv4_addr2}         10.7.7.8
 
 # Valid netmask is 4 bytes long and has continuos block of 1s.
 # Maximum valid value in each octet is 255 and least value is 0.
@@ -80,7 +81,10 @@ Get MAC Address And Verify
     [Documentation]  Get MAC address and verify it's existence on the BMC.
     [Tags]  Get_MAC_Address_And_Verify
 
-    ${resp}=  Redfish.Get  ${REDFISH_NW_ETH0_URI}
+    ${active_channel_config}=  Get Active Channel Config
+    ${ethernet_interface}=  Set Variable  ${active_channel_config['${CHANNEL_NUMBER}']['name']}
+
+    ${resp}=  Redfish.Get  ${REDFISH_NW_ETH_IFACE}${ethernet_interface}
     ${macaddr}=  Get From Dictionary  ${resp.dict}  MACAddress
     Validate MAC On BMC  ${macaddr}
 
@@ -433,7 +437,7 @@ Configure Multicast IP For Gateway
     [Teardown]  Clear IP Settings On Fail  ${test_ipv4_addr}
 
     # ip               subnet_mask          gateway           valid_status_codes
-    ${test_ipv4_addr}  ${test_subnet_mask}  ${multicaste_ip}  ${HTTP_BAD_REQUEST}
+    ${test_ipv4_addr}  ${test_subnet_mask}  ${multicast_ip}  ${HTTP_BAD_REQUEST}
 
 Configure Broadcast IP For Gateway
     [Documentation]  Configure broadcast IP for gateway and expect an error.
@@ -470,6 +474,17 @@ Configure String Value For DNS Server
     ...  Configure Static Name Servers  AND  Test Teardown Execution
 
     Configure Static Name Servers  ${string_value}  ${HTTP_BAD_REQUEST}
+
+Modify IPv4 Address And Verify
+    [Documentation]  Modify IP address via Redfish and verify.
+    [Tags]  Modify_IPv4_Addres_And_Verify
+    [Teardown]  Run Keywords
+    ...  Delete IP Address  ${test_ipv4_addr2}  AND  Delete IP Address  ${test_ipv4_addr}
+    ...  AND  Test Teardown Execution
+
+     Add IP Address  ${test_ipv4_addr}  ${test_subnet_mask}  ${test_gateway}
+
+     Update IP Address  ${test_ipv4_addr}  ${test_ipv4_addr2}  ${test_subnet_mask}  ${test_gateway}
 
 
 *** Keywords ***
@@ -548,22 +563,17 @@ Clear IP Settings On Fail
 Verify CLI and Redfish Nameservers
     [Documentation]  Verify that nameservers obtained via Redfish do not
     ...  match those found in /etc/resolv.conf.
+    ${active_channel_config}=  Get Active Channel Config
+    ${ethernet_interface}=  Set Variable  ${active_channel_config['${CHANNEL_NUMBER}']['name']}
 
-    ${redfish_nameservers}=  Redfish.Get Attribute  ${REDFISH_NW_ETH0_URI}  StaticNameServers
-    Rqprint Vars  redfish_nameservers
+    ${redfish_nameservers}=  Redfish.Get Attribute  ${REDFISH_NW_ETH_IFACE}${ethernet_interface}  StaticNameServers
     ${resolve_conf_nameservers}=  CLI Get Nameservers
-    Rqprint Vars  original_resvconf
-    ${cnt}=  Get length  ${original_resvconf}
-    : FOR    ${a}    IN RANGE    0    ${cnt}
-    \    Remove Values From List  ${resolve_conf_nameservers}  ${original_resvconf}[${a}]
-
     Rqprint Vars  redfish_nameservers  resolve_conf_nameservers
 
     # Check that the 2 lists are equivalent.
     ${match}=  Evaluate  set($redfish_nameservers) == set($resolve_conf_nameservers)
     Should Be True  ${match}
     ...  The nameservers obtained via Redfish do not match those found in /etc/resolv.conf.
-
 
 Configure Static Name Servers
     [Documentation]  Configure DNS server on BMC.
@@ -574,8 +584,11 @@ Configure Static Name Servers
     # static_name_servers  A list of static name server IPs to be
     #                      configured on the BMC.
 
+    ${active_channel_config}=  Get Active Channel Config
+    ${ethernet_interface}=  Set Variable  ${active_channel_config['${CHANNEL_NUMBER}']['name']}
+
     # Currently BMC is sending 500 response code instead of 400 for invalid scenarios.
-    Redfish.Patch  ${REDFISH_NW_ETH0_URI}  body={'StaticNameServers': ${static_name_servers}}
+    Redfish.Patch  ${REDFISH_NW_ETH_IFACE}${ethernet_interface}  body={'StaticNameServers': ${static_name_servers}}
     ...  valid_status_codes=[${valid_status_codes}, ${HTTP_INTERNAL_SERVER_ERROR}]
 
     # Patch operation takes 1 to 3 seconds to set new value.
@@ -599,11 +612,6 @@ Delete Static Name Servers
 
     # Check if all name servers deleted on BMC.
     ${nameservers}=  CLI Get Nameservers
-    Rqprint Vars  original_resvconf
-    ${cnt}=  Get length  ${original_resvconf}
-    : FOR    ${a}    IN RANGE    0    ${cnt}
-    \    Remove Values From List  ${nameservers}  ${original_resvconf}[${a}]
-
     Should Be Empty  ${nameservers}
 
 DNS Test Setup Execution
@@ -611,10 +619,11 @@ DNS Test Setup Execution
 
     Redfish.Login
 
-    ${original_resvconf}=  CLI Get Nameservers
-    Rprint Vars  original_resvconf
-    Set Suite Variable  ${original_resvconf}
-    ${original_nameservers}=  Redfish.Get Attribute  ${REDFISH_NW_ETH0_URI}  StaticNameServers
+    ${active_channel_config}=  Get Active Channel Config
+    ${ethernet_interface}=  Set Variable  ${active_channel_config['${CHANNEL_NUMBER}']['name']}
+
+    ${original_nameservers}=  Redfish.Get Attribute  ${REDFISH_NW_ETH_IFACE}${ethernet_interface}  StaticNameServers
+
     Rprint Vars  original_nameservers
     # Set suite variables to trigger restoration during teardown.
     Set Suite Variable  ${original_nameservers}
@@ -631,3 +640,44 @@ Suite Setup Execution
 
     ${test_gateway}=  Get BMC Default Gateway
     Set Suite Variable  ${test_gateway}
+
+Update IP Address
+    [Documentation]  Update IP address of BMC.
+    [Arguments]  ${ip}  ${new_ip}  ${netmask}  ${gw_ip}  ${valid_status_codes}=${HTTP_OK}
+
+    # Description of argument(s):
+    # ip                  IP address to be replaced (e.g. "10.7.7.7").
+    # new_ip              New IP address to be configured.
+    # netmask             Netmask value.
+    # gw_ip               Gateway IP address.
+    # valid_status_codes  Expected return code from patch operation
+    #                     (e.g. "200").  See prolog of rest_request
+    #                     method in redfish_plus.py for details.
+
+    ${empty_dict}=  Create Dictionary
+    ${patch_list}=  Create List
+    ${ip_data}=  Create Dictionary  Address=${new_ip}  SubnetMask=${netmask}  Gateway=${gw_ip}
+
+    # Find the position of IP address to be modified.
+    @{network_configurations}=  Get Network Configuration
+    FOR  ${network_configuration}  IN  @{network_configurations}
+      Run Keyword If  '${network_configuration['Address']}' == '${ip}'
+      ...  Append To List  ${patch_list}  ${ip_data}
+      ...  ELSE  Append To List  ${patch_list}  ${empty_dict}
+    END
+
+    ${ip_found}=  Run Keyword And Return Status  List Should Contain Value
+    ...  ${patch_list}  ${ip_data}  msg=${ip} does not exist on BMC
+    Pass Execution If  ${ip_found} == ${False}  ${ip} does not exist on BMC
+
+    # Run patch command only if given IP is found on BMC
+    ${data}=  Create Dictionary  IPv4StaticAddresses=${patch_list}
+
+    Redfish.patch  ${REDFISH_NW_ETH0_URI}  body=&{data}  valid_status_codes=[${valid_status_codes}]
+
+    # Note: Network restart takes around 15-18s after patch request processing.
+    Sleep  ${NETWORK_TIMEOUT}s
+    Wait For Host To Ping  ${OPENBMC_HOST}  ${NETWORK_TIMEOUT}
+
+    Verify IP On BMC  ${new_ip}
+    Validate Network Config On BMC
