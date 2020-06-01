@@ -16,6 +16,7 @@ Test Teardown       Test Teardown Execution
 
 ** Variables ***
 
+${sensor_number}      0x01
 ${max_num_event_logs}  ${200}
 ${default_cert}        ${EXECDIR}/data/server.pem
 
@@ -497,5 +498,5 @@ Create SEL
     # Create a SEL.
     # Example:
     # a | 02/14/2020 | 01:16:58 | Temperature #0x17 |  | Asserted
-    Run IPMI Standard Command
-    ...  raw ${IPMI_RAW_CMD['SEL_entry']['Add'][0]}
+    Run IPMI Command
+    ...  0x0a 0x44 0x00 0x00 0x02 0x00 0x00 0x00 0x00 0x00 0x00 0x04 0x01 ${sensor_number} 0x00 0xa0 0x04 0x07
