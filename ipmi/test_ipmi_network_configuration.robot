@@ -182,29 +182,24 @@ Set IPMI Inband Network Configuration
 
 Restore Configuration
     [Documentation]  Restore the configuration to its pre-test state.
-    ${length}=  Get Length  ${initial_lan_config}
-    Return From Keyword If  ${length} == ${0}
 
     Set IPMI Inband Network Configuration  ${ip_address}  ${subnet_mask}
-    ...  ${initial_lan_config['Default Gateway IP']}  login=${0}
+    ...  ${def_gw}  login=${0}
 
 
 Suite Setup Execution
     [Documentation]  Suite Setup Execution.
 
     Redfish.Login
-    Run Inband IPMI Standard Command
-    ...  lan set ${CHANNEL_NUMBER} ipsrc static  login_host=${1}
 
-    ${host_name}  ${ip_address}=  Get Host Name IP  host=${OPENBMC_HOST}
-    Set Suite Variable  ${ip_address}
+    ${lan_config}=  Get LAN Print Dict  ${CHANNEL_NUMBER}
+    Set Suite Variable  ${ip_address}  ${lan_config['IP Address']}
+    Set Suite Variable  ${subnet_mask}  ${lan_config['Subnet Mask']}
+    Set Suite Variable  ${def_gw}  ${lan_config['Default Gateway IP']}
 
-    @{network_configurations}=  Get Network Configuration
-    FOR  ${network_configuration}  IN  @{network_configurations}
-       Run Keyword If  '${network_configuration['Address']}' == '${ip_address}'
-       ...  Run Keywords  Set Suite Variable  ${subnet_mask}   ${network_configuration['SubnetMask']}  AND
-       ...  Exit For Loop
-    END
+    Set IPMI Inband Network Configuration  ${ip_address}  ${subnet_mask}
+    ...  ${def_gw}  login=${1}
+
 
 Suite Teardown Execution
     [Documentation]  Suite Teardown Execution.

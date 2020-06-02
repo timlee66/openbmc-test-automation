@@ -335,7 +335,6 @@ CLI Get Nameservers
 
 Get Network Configuration
     [Documentation]  Get network configuration.
-    [Arguments]  ${uri}=${REDFISH_NW_ETH0_URI}
     # Sample output:
     #{
     #  "@odata.context": "/redfish/v1/$metadata#EthernetInterface.EthernetInterface",

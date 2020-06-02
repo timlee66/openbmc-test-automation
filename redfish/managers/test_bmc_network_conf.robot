@@ -673,7 +673,7 @@ Update IP Address
     # Run patch command only if given IP is found on BMC
     ${data}=  Create Dictionary  IPv4StaticAddresses=${patch_list}
 
-    Redfish.patch  ${REDFISH_NW_ETH0_URI}  body=&{data}  valid_status_codes=[${valid_status_codes}]
+    Redfish.patch  ${REDFISH_NW_ETH_IFACE}${ethernet_interface}  body=&{data}  valid_status_codes=[${valid_status_codes}]
 
     # Note: Network restart takes around 15-18s after patch request processing.
     Sleep  ${NETWORK_TIMEOUT}s
