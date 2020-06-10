@@ -510,7 +510,7 @@ Configure IP Address Via Different User Roles And Verify
     ${LDAP_TYPE}  ReadOnly         ${GROUP_NAME}  ${HTTP_FORBIDDEN}
 
     # Verify LDAP user with NoAccess privilege is forbidden to configure IP address.
-    ${LDAP_TYPE}  NoAccess         ${GROUP_NAME}  ${HTTP_FORBIDDEN}
+    ${LDAP_TYPE}  NoAccess         ${GROUP_NAME}  ${HTTP_FORBIDDEN}  [${HTTP_FORBIDDEN}]
 
     # Verify LDAP user with Operator privilege is able to configure IP address.
     ${LDAP_TYPE}  Operator         ${GROUP_NAME}  ${HTTP_OK}
@@ -529,7 +529,7 @@ Delete IP Address Via Different User Roles And Verify
     ${LDAP_TYPE}  ReadOnly         ${GROUP_NAME}  ${HTTP_FORBIDDEN}
 
     # Verify LDAP user with NoAccess privilege is forbidden to delete IP address.
-    ${LDAP_TYPE}  NoAccess         ${GROUP_NAME}  ${HTTP_FORBIDDEN}
+    ${LDAP_TYPE}  NoAccess         ${GROUP_NAME}  ${HTTP_FORBIDDEN}  [${HTTP_FORBIDDEN}]
 
     # Verify LDAP user with Operator privilege is able to delete IP address.
     ${LDAP_TYPE}  Operator         ${GROUP_NAME}  ${HTTP_OK}
@@ -837,6 +837,7 @@ Update LDAP User Role And Host Poweron
 Update LDAP User Role And Configure IP Address
     [Documentation]  Update LDAP user role and configure IP address.
     [Arguments]  ${ldap_type}  ${group_privilege}  ${group_name}  ${valid_status_code}=${HTTP_OK}
+    ...  ${extra_valid_status_code}=[${HTTP_OK}]
     [Teardown]  Run Keywords  Redfish.Logout  AND  Redfish.Login  AND  Delete IP Address  ${test_ip}
 
     # Description of argument(s):
@@ -852,12 +853,13 @@ Update LDAP User Role And Configure IP Address
 
     Redfish.Login  ${LDAP_USER}  ${LDAP_USER_PASSWORD}
 
-    Add IP Address  ${test_ip}  ${test_mask}  ${test_gw}  ${valid_status_code}
+    Add IP Address  ${test_ip}  ${test_mask}  ${test_gw}  ${valid_status_code}  ${extra_valid_status_code}
 
 
 Update LDAP User Role And Delete IP Address
     [Documentation]  Update LDAP user role and delete IP address.
     [Arguments]  ${ldap_type}  ${group_privilege}  ${group_name}  ${valid_status_code}=${HTTP_OK}
+    ...  ${extra_valid_status_code}=[${HTTP_OK}]
     [Teardown]  Run Keywords  Redfish.Logout  AND  Redfish.Login  AND  Delete IP Address  ${test_ip}
 
     # Description of argument(s):
@@ -876,7 +878,7 @@ Update LDAP User Role And Delete IP Address
 
     Redfish.Login  ${LDAP_USER}  ${LDAP_USER_PASSWORD}
 
-    Delete IP Address  ${test_ip}  ${valid_status_code}
+    Delete IP Address  ${test_ip}  ${valid_status_code}  ${extra_valid_status_code}
 
 
 Update LDAP User Role And Read Network Configuration

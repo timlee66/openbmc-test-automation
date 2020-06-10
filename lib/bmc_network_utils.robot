@@ -372,10 +372,54 @@ Get Network Configuration
     [Return]  @{network_configurations}
 
 
+GetEx Network Configuration
+    [Documentation]  Get network configuration.
+    [Arguments]  ${extra_valid_status_codes}=[${HTTP_OK}]
+    # Sample output:
+    #{
+    #  "@odata.context": "/redfish/v1/$metadata#EthernetInterface.EthernetInterface",
+    #  "@odata.id": "/redfish/v1/Managers/bmc/EthernetInterfaces/eth0",
+    #  "@odata.type": "#EthernetInterface.v1_2_0.EthernetInterface",
+    #  "Description": "Management Network Interface",
+    #  "IPv4Addresses": [
+    #    {
+    #      "Address": "169.254.xx.xx",
+    #      "AddressOrigin": "IPv4LinkLocal",
+    #      "Gateway": "0.0.0.0",
+    #      "SubnetMask": "255.255.0.0"
+    #    },
+    #    {
+    #      "Address": "xx.xx.xx.xx",
+    #      "AddressOrigin": "Static",
+    #      "Gateway": "xx.xx.xx.1",
+    #      "SubnetMask": "xx.xx.xx.xx"
+    #    }
+    #  ],
+    #  "Id": "eth0",
+    #  "MACAddress": "xx:xx:xx:xx:xx:xx",
+    #  "Name": "Manager Ethernet Interface",
+    #  "SpeedMbps": 0,
+    #  "VLAN": {
+    #    "VLANEnable": false,
+    #    "VLANId": 0
+    #  }
+
+
+    ${active_channel_config}=  Get Active Channel Config
+    ${resp}=  Redfish.Get  ${REDFISH_NW_ETH_IFACE}${active_channel_config['${CHANNEL_NUMBER}']['name']}
+              ...  valid_status_codes=${extra_valid_status_codes}
+
+    Return From Keyword If  ${resp.status} != ${HTTP_OK}  @{EMPTY}
+
+    @{network_configurations}=  Get From Dictionary  ${resp.dict}  IPv4StaticAddresses
+    [return]  @{network_configurations}
+
+
 Add IP Address
     [Documentation]  Add IP Address To BMC.
     [Arguments]  ${ip}  ${subnet_mask}  ${gateway}
     ...  ${valid_status_codes}=${HTTP_OK}
+    ...  ${extra_valid_status_codes}=[${HTTP_OK}]
 
     # Description of argument(s):
     # ip                  IP address to be added (e.g. "10.7.7.7").
@@ -391,7 +435,8 @@ Add IP Address
     ...  SubnetMask=${subnet_mask}  Gateway=${gateway}
 
     ${patch_list}=  Create List
-    ${network_configurations}=  Get Network Configuration
+    ${network_configurations}=  GetEx Network Configuration  ${extra_valid_status_codes}
+
     ${num_entries}=  Get Length  ${network_configurations}
 
     FOR  ${INDEX}  IN RANGE  0  ${num_entries}
@@ -421,6 +466,7 @@ Add IP Address
 Delete IP Address
     [Documentation]  Delete IP Address Of BMC.
     [Arguments]  ${ip}  ${valid_status_codes}=${HTTP_OK}
+    ...  ${extra_valid_status_codes}=[${HTTP_OK}]
 
     # Description of argument(s):
     # ip                  IP address to be deleted (e.g. "10.7.7.7").
@@ -431,7 +477,8 @@ Delete IP Address
     ${empty_dict}=  Create Dictionary
     ${patch_list}=  Create List
 
-    @{network_configurations}=  Get Network Configuration
+    @{network_configurations}=  GetEx Network Configuration  ${extra_valid_status_codes}
+
     FOR  ${network_configuration}  IN  @{network_configurations}
       Run Keyword If  '${network_configuration['Address']}' == '${ip}'
       ...  Append To List  ${patch_list}  ${null}
