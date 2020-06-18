@@ -32,10 +32,15 @@ Test BIOS Firmware Update
     Get LPC SHM Address
     Update BIOS Firmware  ${BIOS1_TAR}
     Verify BIOS Version  ${BIOS1_TAR}
+    BMC Execute Command
+    ...  systemctl restart phosphor-ipmi-host.service
     Sleep  10s
     Get LPC SHM Address
     Update BIOS Firmware  ${BIOS2_TAR}
     Verify BIOS Version  ${BIOS2_TAR}
+    BMC Execute Command
+    ...  systemctl restart phosphor-ipmi-host.service
+    Sleep  10s
 
 Test Invalid BIOS Firmware Update
     [Documentation]  Test Invalid BIOS firmware update over IPMI.
@@ -179,7 +184,7 @@ Update BIOS Firmware
 
     ${cmd}=  Catenate  ${HOST_WORK_DIR}/burn_my_bmc --command update --interface ipmilpc
     ...  --image ${HOST_WORK_DIR}/${image-bios} --sig ${HOST_WORK_DIR}/${image-bios-sig} --type bios
-    ...  --address 0x${lpcshm_address} --length 0xFFC --ignore-update
+    ...  --address 0x${lpcshm_address} --length 0xFFC
 
     ${output}  ${stderr}  ${rc}=  OS Execute Command  ${cmd}  ignore_err=1
     Should Not Contain  ${stderr}  Exception received
