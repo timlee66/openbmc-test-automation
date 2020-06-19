@@ -186,10 +186,9 @@ Update BIOS Firmware
     ...  --image ${HOST_WORK_DIR}/${image-bios} --sig ${HOST_WORK_DIR}/${image-bios-sig} --type bios
     ...  --address 0x${lpcshm_address} --length 0xFFC
 
-    ${output}  ${stderr}  ${rc}=  OS Execute Command  ${cmd}  ignore_err=1
-    Should Not Contain  ${stderr}  Exception received
+    OS Execute Command  ${cmd}  fork=1
 
-    Wait Until Keyword Succeeds  3 mins  5 secs
+    Wait Until Keyword Succeeds  5 mins  10 secs
     ...  BIOS Update Status Should Be  ActiveState=activating
 
     Wait Until Keyword Succeeds  20 mins  30 secs
