@@ -45,7 +45,7 @@ Verify Set Time Using Redfish
     [Documentation]  Verify set time using redfish API.
     [Tags]  Verify_Set_Time_Using_Redfish
 
-    Rest Set Time Owner
+    Set Time To Manual Mode
 
     ${old_bmc_time}=  CLI Get BMC DateTime
     # Add 3 days to current date.
@@ -206,15 +206,11 @@ Redfish Set DateTime
     ...  &{kwargs}
 
 
-Rest Set Time Owner
-    [Documentation]  Set time owner of the system via REST.
+Set Time To Manual Mode
+    [Documentation]  Set date time to manual mode via REST.
 
     ${data}=  Create Dictionary  data=${MANUAL_MODE}
     Write Attribute  ${TIME_MANAGER_URI}sync_method  TimeSyncMethod  data=${data}  verify=${TRUE}
-    Sleep  5s
-
-    ${data}=  Create Dictionary  data=${BOTH_OWNER}
-    Write Attribute  ${TIME_MANAGER_URI}owner  TimeOwner  data=${data}  verify=${TRUE}
 
 
 Restore NTP Mode
@@ -233,20 +229,40 @@ Suite Setup Execution
 
     Printn
     Redfish.Login
-    Redfish Power Off
+    Get NTP Initial Status
+    Set Time To Manual Mode
+    Set NTP state  ${FALSE}
 
-    Redfish.Login
-    ${original_ntp}=  Redfish.Get Attribute  ${REDFISH_NW_PROTOCOL_URI}  NTP
-    Set Suite Variable  ${original_ntp}
-    Rprint Vars  original_ntp
-    Rest Set Time Owner
 
 Suite Teardown Execution
     [Documentation]  Do the suite level teardown.
 
-    #Redfish.Patch  ${REDFISH_NW_PROTOCOL_URI}
-    #...  body={'NTP':{'NTPServers': ['${EMPTY}', '${EMPTY}']}}
-    #...  valid_status_codes=[${HTTP_OK}, ${HTTP_NO_CONTENT}]
-    #Rest Set Time Owner
-    Redfish Power On
+    Redfish.Patch  ${REDFISH_NW_PROTOCOL_URI}
+    ...  body={'NTP':{'NTPServers': ['${EMPTY}', '${EMPTY}']}}
+    ...  valid_status_codes=[${HTTP_OK}, ${HTTP_NO_CONTENT}]
+    Set Time To Manual Mode
+    Restore NTP Status
     Redfish.Logout
+
+
+Set NTP state
+    [Documentation]  Set NTP service inactive.
+    [Arguments]  ${state}
+
+    Redfish.Patch  ${REDFISH_NW_PROTOCOL_URI}  body={'NTP':{'ProtocolEnabled': ${state}}}
+    ...  valid_status_codes=[${HTTP_OK}, ${HTTP_NO_CONTENT}]
+
+
+Get NTP Initial Status
+    [Documentation]  Get NTP service Status.
+
+    ${original_ntp}=  Redfish.Get Attribute  ${REDFISH_NW_PROTOCOL_URI}  NTP
+    Set Suite Variable  ${original_ntp}
+
+
+Restore NTP Status
+    [Documentation]  Restore NTP Status.
+
+    Run Keyword If  '${original_ntp["ProtocolEnabled"]}' == 'True'
+    ...    Set NTP state  ${TRUE}
+    ...  ELSE  Set NTP state  ${FALSE}

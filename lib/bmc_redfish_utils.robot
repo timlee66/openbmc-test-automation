@@ -31,11 +31,9 @@ Redfish Power Operation
     #  }
     # }
 
-    Redfish.Login
     ${target}=  redfish_utils.Get Target Actions  /redfish/v1/Systems/system/  ComputerSystem.Reset
     ${payload}=  Create Dictionary  ResetType=${reset_type}
     ${resp}=  Redfish.Post  ${target}  body=&{payload}
-    Redfish.Logout
 
 
 Redfish BMC Reset Operation
@@ -50,13 +48,9 @@ Redfish BMC Reset Operation
     #  "target": "/redfish/v1/Managers/bmc/Actions/Manager.Reset"
     # }
 
-    Redfish.Login
     ${target}=  redfish_utils.Get Target Actions  /redfish/v1/Managers/bmc/  Manager.Reset
     ${payload}=  Create Dictionary  ResetType=GracefulRestart
-    ${resp}=  Redfish.Post  ${target}  body=&{payload}
-    # The logout may very well fail because the system was just asked to
-    # reset itself.
-    Run Keyword And Ignore Error  Redfish.Logout
+    Redfish.Post  ${target}  body=&{payload}
 
 
 Reset BIOS Via Redfish
@@ -69,7 +63,6 @@ Reset BIOS Via Redfish
 Delete All Redfish Sessions
     [Documentation]  Delete all active redfish sessions.
 
-    Redfish.Login
     ${saved_session_info}=  Get Redfish Session Info
 
     ${resp_list}=  Redfish_Utils.Get Member List
@@ -78,11 +71,9 @@ Delete All Redfish Sessions
     # Remove the current login session from the list.
     Remove Values From List  ${resp_list}  ${saved_session_info["location"]}
 
-    :FOR  ${session}  IN  @{resp_list}
-    \  Redfish.Delete  ${session}
-
-    Redfish.Logout
-
+    FOR  ${session}  IN  @{resp_list}
+        Redfish.Delete  ${session}
+    END
 
 Get Valid FRUs
     [Documentation]  Return a dictionary containing all of the valid FRU records for the given fru_type.

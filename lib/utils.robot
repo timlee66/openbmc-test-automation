@@ -353,11 +353,25 @@ Old Get Power Policy
     [Return]  ${currentPolicy}
 
 
+Redfish Get Power Restore Policy
+    [Documentation]  Returns the BMC power restore policy.
+
+    ${power_restore_policy}=  Redfish.Get Attribute  /redfish/v1/Systems/system  PowerRestorePolicy
+    [Return]  ${power_restore_policy}
+
+
 Get Auto Reboot
     [Documentation]  Returns auto reboot setting.
     ${setting}=  Read Attribute  ${CONTROL_HOST_URI}/auto_reboot  AutoReboot
 
     [Return]  ${setting}
+
+
+Redfish Get Auto Reboot
+    [Documentation]  Returns auto reboot setting.
+
+    ${resp}=  Redfish.Get Attribute  /redfish/v1/Systems/system  Boot
+    [Return]  ${resp["AutomaticRetryConfig"]}
 
 
 Trigger Warm Reset
@@ -525,8 +539,9 @@ Delete Error Logs
 
     # Get the list of error logs entries and delete them all.
     ${elog_entries}=  Get URL List  ${BMC_LOGGING_ENTRY}
-    :FOR  ${entry}  IN  @{elog_entries}
-    \  Delete Error Log Entry  ${entry}
+    FOR  ${entry}  IN  @{elog_entries}
+        Delete Error Log Entry  ${entry}
+    END
 
 
 Delete All Error Logs
@@ -649,6 +664,17 @@ Old Set Power Policy
     Write Attribute    ${HOST_SETTING}    power_policy   data=${valueDict}
 
 
+Redfish Set Power Restore Policy
+    [Documentation]   Set the BMC power restore policy.
+    [Arguments]   ${power_restore_policy}
+
+    # Description of argument(s):
+    # power_restore_policy    Power restore policy (e.g. "AlwaysOff", "AlwaysOn", "LastState").
+
+    Redfish.Patch  /redfish/v1/Systems/system  body={"PowerRestorePolicy": "${power_restore_policy}"}
+    ...  valid_status_codes=[${HTTP_OK}, ${HTTP_NO_CONTENT}]
+
+
 Set Auto Reboot
     [Documentation]  Set the given auto reboot setting.
     [Arguments]  ${setting}
@@ -661,6 +687,20 @@ Set Auto Reboot
     Write Attribute  ${CONTROL_HOST_URI}/auto_reboot  AutoReboot   data=${data}
     ${current_setting}=  Get Auto Reboot
     Should Be Equal As Integers  ${current_setting}  ${setting}
+
+
+Redfish Set Auto Reboot
+    [Documentation]  Set the given auto reboot setting.
+    [Arguments]  ${setting}
+
+    # Description of argument(s):
+    # setting    The reboot setting, "RetryAttempts" and "Disabled".
+
+    Redfish.Patch  /redfish/v1/Systems/system  body={"Boot": {"AutomaticRetryConfig": "${setting}"}}
+    ...  valid_status_codes=[${HTTP_OK}, ${HTTP_NO_CONTENT}]
+
+    ${current_setting}=  Redfish Get Auto Reboot
+    Should Be Equal As Strings  ${current_setting}  ${setting}
 
 
 Set Control Boot Mode
@@ -738,3 +778,24 @@ Get Post Boot Action
 
     [Return]  ${post_code_update_actions}
 
+
+Redfish Set Boot Default
+    [Documentation]  Set and Verify BootSource and BootType.
+    [Arguments]      ${override_enabled}  ${override_target}
+
+    # Description of argument(s):
+    # override_enabled    Boot source enable type.
+    #                     ('Once', 'Continuous', 'Disabled').
+    # override_target     Boot target type.
+    #                     ('Pxe', 'Cd', 'Hdd', 'Diags', 'BiosSetup', 'None').
+
+    ${data}=  Create Dictionary  BootSourceOverrideEnabled=${override_enabled}
+    ...  BootSourceOverrideTarget=${override_target}
+    ${payload}=  Create Dictionary  Boot=${data}
+
+    Redfish.Patch  /redfish/v1/Systems/system  body=&{payload}
+    ...  valid_status_codes=[${HTTP_OK},${HTTP_NO_CONTENT}]
+
+    ${resp}=  Redfish.Get Attribute  /redfish/v1/Systems/system  Boot
+    Should Be Equal As Strings  ${resp["BootSourceOverrideEnabled"]}  ${override_enabled}
+    Should Be Equal As Strings  ${resp["BootSourceOverrideTarget"]}  ${override_target}

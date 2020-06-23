@@ -36,7 +36,6 @@ Verify Redfish BMC PowerOn
     # TODO: Replace OCC state check with redfish property when available.
     # Verify OCC State
 
-    Redfish.Login
     ${power_control}=  Redfish.Get Attribute  ${REDFISH_CHASSIS_POWER_URI}  PowerControl
     Rprint Vars   power_control
     Valid Dict  power_control[${0}]  ['PowerConsumedWatts']
@@ -62,6 +61,7 @@ Test Setup Execution
 
     Printn
     Start SOL Console Logging
+    Redfish.Login
 
 
 Test Teardown Execution
@@ -70,4 +70,9 @@ Test Teardown Execution
     FFDC On Test Case Fail
     ${sol_log}=    Stop SOL Console Logging
     Log   ${sol_log}
-    Set Auto Reboot  ${1}
+
+    Run Keyword If  ${REDFISH_SUPPORTED}
+    ...    Redfish Set Auto Reboot  RetryAttempts
+    ...  ELSE
+    ...    Set Auto Reboot  ${1}
+    Redfish.Logout

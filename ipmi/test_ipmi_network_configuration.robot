@@ -55,7 +55,7 @@ Disable VLAN Via IPMI When Multiple VLAN Exist On BMC
     [Tags]   Disable_VLAN_Via_IPMI_When_LAN_And_VLAN_Exist_On_BMC
 
     FOR  ${id}  IN  @{vlan_ids}
-      Create VLAN  ${vlan_id_for_rest}  eth1
+      Create VLAN  ${id}  eth1
     END
 
     Create VLAN Via IPMI  off

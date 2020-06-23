@@ -36,10 +36,11 @@ Get Software Objects
     ${host_list}=  Create List
     ${sw_list}=  Read Properties  ${SOFTWARE_VERSION_URI}
 
-    :FOR  ${index}  IN  @{sw_list}
-    \  ${attr_purpose}=  Read Software Attribute  ${index}  Purpose
-    \  Continue For Loop If  '${attr_purpose}' != '${version_type}'
-    \  Append To List  ${host_list}  ${index}
+    FOR  ${index}  IN  @{sw_list}
+      ${attr_purpose}=  Read Software Attribute  ${index}  Purpose
+      Continue For Loop If  '${attr_purpose}' != '${version_type}'
+      Append To List  ${host_list}  ${index}
+    END
 
     [Return]  ${host_list}
 
@@ -73,9 +74,9 @@ Get Software Objects Id
     ${sw_id_list}=  Create List
     ${sw_list}=  Get Software Objects  ${version_type}
 
-    :FOR  ${index}  IN  @{sw_list}
-    \  Append To List  ${sw_id_list}  ${index.rsplit('/', 1)[1]}
-
+    FOR  ${index}  IN  @{sw_list}
+        Append To List  ${sw_id_list}  ${index.rsplit('/', 1)[1]}
+    END
     [Return]  ${sw_id_list}
 
 
@@ -97,11 +98,11 @@ Get Host Software Objects Details
     ${software}=  Create List
 
     ${pnor_details}=  Get Software Objects  ${VERSION_PURPOSE_HOST}
-    :FOR  ${pnor}  IN  @{pnor_details}
-    \  ${resp}=  OpenBMC Get Request  ${pnor}  quiet=${1}
-    \  ${json}=  To JSON  ${resp.content}
-    \  Append To List  ${software}  ${json["data"]}
-
+    FOR  ${pnor}  IN  @{pnor_details}
+        ${resp}=  OpenBMC Get Request  ${pnor}  quiet=${1}
+        ${json}=  To JSON  ${resp.content}
+        Append To List  ${software}  ${json["data"]}
+    END
     [Return]  ${software}
 
 Set Host Software Property
@@ -117,7 +118,6 @@ Set Host Software Property
     ${args}=  Create Dictionary  data=${data}
     Write Attribute  ${host_object}  ${sw_attribute}  data=${args}
     # Sync time for software updater manager to update.
-    # TODO: openbmc/openbmc#2857
     Sleep  10s
 
 
@@ -230,7 +230,7 @@ Upload And Activate Image
     # Verify the image is 'READY' to be activated or if it's already active,
     # set priority to 0 and reboot the BMC.
     ${software_state}=  Read Properties  ${SOFTWARE_VERSION_URI}${version_id}
-    ${activation}=  Set Variable  &{software_state}[Activation]
+    ${activation}=  Set Variable  ${software_state}[Activation]
 
     Run Keyword If
     ...  '${skip_if_active}' == 'true' and '${activation}' == '${ACTIVE}'
@@ -240,14 +240,14 @@ Upload And Activate Image
     ...    AND
     ...      Return From Keyword
 
-    Should Be Equal As Strings  &{software_state}[Activation]  ${READY}
+    Should Be Equal As Strings  ${software_state}[Activation]  ${READY}
 
     # Request the image to be activated.
     ${args}=  Create Dictionary  data=${REQUESTED_ACTIVE}
     Write Attribute  ${SOFTWARE_VERSION_URI}${version_id}
     ...  RequestedActivation  data=${args}
     ${software_state}=  Read Properties  ${SOFTWARE_VERSION_URI}${version_id}
-    Should Be Equal As Strings  &{software_state}[RequestedActivation]
+    Should Be Equal As Strings  ${software_state}[RequestedActivation]
     ...  ${REQUESTED_ACTIVE}
 
     # Does caller want to wait for activation to complete?
@@ -256,7 +256,7 @@ Upload And Activate Image
     # Verify code update was successful and Activation state is Active.
     Wait For Activation State Change  ${version_id}  ${ACTIVATING}
     ${software_state}=  Read Properties  ${SOFTWARE_VERSION_URI}${version_id}
-    Should Be Equal As Strings  &{software_state}[Activation]  ${ACTIVE}
+    Should Be Equal As Strings  ${software_state}[Activation]  ${ACTIVE}
 
     # Uploaded and activated image should have priority set to 0. Due to timing
     # contention, it may take up to 10 seconds to complete updating priority.
@@ -420,11 +420,11 @@ Get Least Value Priority Image
     ${priority_value_list}=  Create List
     ${sw_list}=  Get Software Objects  version_type=${version_type}
 
-    :FOR  ${index}  IN  @{sw_list}
-    \  ${priority_value}=
-    ...  Read Software Attribute  ${index}  Priority
-    \  Append To List  ${priority_value_list}  ${priority_value}
-
+    FOR  ${index}  IN  @{sw_list}
+        ${priority_value}=
+        ...  Read Software Attribute  ${index}  Priority
+        Append To List  ${priority_value_list}  ${priority_value}
+    END
     ${min_value}=  Min List Value  ${priority_value_list}
 
     [Return]  ${min_value}
@@ -491,10 +491,11 @@ Get List of Images
     [Documentation]  Get List of Images
     [Arguments]  ${installed_images}
 
-    :FOR  ${uri}  IN  @{installed_images}
-    \  ${resp}=  OpenBMC Get Request  ${uri}
-    \  ${json}=  To JSON  ${resp.content}
-    \  Log  ${json["data"]}
+    FOR  ${uri}  IN  @{installed_images}
+      ${resp}=  OpenBMC Get Request  ${uri}
+      ${json}=  To JSON  ${resp.content}
+      Log  ${json["data"]}
+    END
 
 
 Check Software Object Attribute
