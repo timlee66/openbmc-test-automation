@@ -5,6 +5,8 @@ Resource         ../lib/ipmi_client.robot
 Resource         ../lib/openbmc_ffdc.robot
 Library          ../lib/ipmi_utils.py
 
+Suite Setup            Suite Setup Execution
+Suite Teardown         Suite Teardown Execution
 Test Teardown    FFDC On Test Case Fail
 
 *** Test Cases ***
@@ -89,3 +91,10 @@ Test Setup Execution
     ${chassis_status}=  Get Chassis Status
     Set Test Variable  ${initial_power_policy}  ${chassis_status['power_restore_policy']}
 
+Suite Setup Execution
+    [Documentation]  Suite Setup Execution.
+    Redfish.Login
+
+Suite Teardown Execution
+    [Documentation]  Suite Teardown Execution.
+    Redfish.Logout

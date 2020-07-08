@@ -102,8 +102,8 @@ Suite Setup Execution
     [Documentation]  Do test case setup tasks.
 
     Printn
-    Redfish Power On  stack_mode=skip
     Redfish.Login
+    Redfish Power On  stack_mode=skip
 
 
 Test Teardown Execution

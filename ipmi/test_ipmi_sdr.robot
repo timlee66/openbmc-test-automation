@@ -8,7 +8,8 @@ Resource               ../lib/boot_utils.robot
 Resource               ../lib/bmc_redfish_resource.robot
 Library                ../lib/ipmi_utils.py
 
-Suite setup             Suite Setup Execution
+Suite Setup            Suite Setup Execution
+Suite Teardown         Suite Teardown Execution
 Test Teardown           Test Teardown Execution
 
 Force Tags              SDR_Test
@@ -282,12 +283,17 @@ Test SDR Info
 Suite Setup Execution
     [Documentation]  Do the initial suite setup.
 
+    Redfish.Login
+
     Redfish Power On  stack_mode=skip  quiet=1
 
     ${uri_list}=  Read Properties  ${OPENBMC_BASE_URI}list
     Set Suite Variable  ${SYSTEM_URI}  ${uri_list}
     Log  ${uri_list}
 
+Suite Teardown Execution
+    [Documentation]  Suite Teardown Execution.
+    Redfish.Logout
 
 Test Teardown Execution
     [Documentation]  Do the post test teardown.
