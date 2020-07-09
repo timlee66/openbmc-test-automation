@@ -212,6 +212,7 @@ Suite Setup Execution
     #  Save initial settings.
     #  Deactivate power and set limit.
 
+    Redfish.Login
     Smart Power Off
 
     # Save the deactivation/activation setting.

@@ -10,6 +10,7 @@ Resource            ../../lib/utils.robot
 Resource            ../../lib/state_manager.robot
 Library             ../../lib/bmc_ssh_utils.py
 
+Suite Setup         Redfish.Login
 Test Setup          Open Connection And Log In
 Test Teardown       Test Teardown Execution
 

@@ -5,7 +5,7 @@ Resource        ../../lib/bmc_redfish_resource.robot
 Resource        ../../lib/openbmc_ffdc.robot
 Resource        ../../lib/boot_utils.robot
 
-Suite Setup     Run Key  Start SOL Console Logging
+Suite Setup     Suite Setup Execution
 Test Teardown   Test Teardown Execution
 
 *** Variables ***
@@ -34,6 +34,11 @@ Host Reboot Loop
     Repeat Keyword  ${BOOT_LOOP_COUNT} times  RF SYS GracefulRestart
 
 *** Keywords ***
+Suite Setup Execution
+    [Documentation]  Suite Setup Exection.
+
+    Redfish.Login
+    Run Key  Start SOL Console Logging
 
 Test Teardown Execution
     [Documentation]  Do the post test teardown.
