@@ -32,7 +32,7 @@ ${BMC_BOOT_MSG}          Startup finished in
 ${BMC_SYSLOG_REGEX}      dropbear|vrm-control.sh
 ${RSYSLOG_REGEX}         start|exiting on signal 15|there are no active actions configured|Succeeded.
 ${RSYSLOG_RETRY_REGEX}   suspended
-${IMJOURNAL_REGEX}       journal reloaded...|No statefile exists,|rate-limiting
+${IMJOURNAL_REGEX}       journal reloaded...|No statefile exists,|rate-limiting|reloading...
 ${RSYSLOG_RETRY_REGEX2}  suspended|resumed|Network is unreachable
 ${valid_password}        0penBmc1
 ${max_password_length}   20
