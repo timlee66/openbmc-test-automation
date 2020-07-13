@@ -27,6 +27,7 @@ Verify Software Purposes
       ${object}=  Read Properties  ${uri}
       Continue For Loop If  not 'Purpose' in ${object}
       Should Contain Any  &{object}[Purpose]  ${VERSION_PURPOSE_HOST}  ${VERSION_PURPOSE_BMC}
+      ...  ${VERSION_PURPOSE_ME}
     END
 
 
