@@ -105,6 +105,9 @@
 -e Verify GPU Present
 -e Verify GPU Not Present
 
+# Olympus contains the mac-address package so the overwritten mac will be restored after rebooting.
+-e Configure Valid MAC And Check Persistency
+
 -v MACHINE_TYPE:olympus-nuvoton
 -v log_file_path:log.txt
 -v FORCE_UPDATE:1
