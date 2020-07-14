@@ -151,9 +151,9 @@ Print Websocket Monitor Log
 Suite Setup Execution
     [Documentation]  Do the suite setup tasks.
 
+    Redfish.Login
     Run Keyword  Redfish Power On  stack_mode=skip
 
-    Redfish.Login
 
     Delete All Error Logs
     Kill Websocket Monitor
