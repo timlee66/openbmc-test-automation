@@ -237,14 +237,18 @@ Verify Operator User Privilege
     Redfish Create User  operator_user  TestPwd123  Operator  ${True}
 
     # Login with operator user.
-    Redfish.Login  operator_user  TestPwd123
+    #Redfish.Login  operator_user  TestPwd123
 
     # Verify BMC reset.
     Redfish OBMC Reboot (off)  stack_mode=normal
 
+    Redfish.Login  operator_user  TestPwd123
+
     # Attempt to change password of admin user with operator user.
     Redfish.Patch  /redfish/v1/AccountService/Accounts/admin_user  body={'Password': 'NewTestPwd123'}
-    ...  valid_status_codes=[${HTTP_UNAUTHORIZED}]
+    ...  valid_status_codes=[${HTTP_FORBIDDEN}]
+
+    Redfish.Logout
 
     Redfish.Login
 
