@@ -33,8 +33,12 @@ Verify Redfish User Persistence After Reboot
     Redfish Create User  readonly_user  TestPwd123  ReadOnly        ${True}
     #Redfish Create User  callback_user  TestPwd123  Callback        ${True}
 
+    Redfish.Login
+
     # Reboot BMC.
     Redfish OBMC Reboot (off)  stack_mode=normal
+
+    Redfish.Logout
 
     # Verify users after reboot.
     Redfish Verify User  admin_user     TestPwd123  Administrator   ${True}
@@ -239,8 +243,12 @@ Verify Operator User Privilege
     # Login with operator user.
     #Redfish.Login  operator_user  TestPwd123
 
+    Redfish.Login
+
     # Verify BMC reset.
     Redfish OBMC Reboot (off)  stack_mode=normal
+
+    Redfish.Logout
 
     Redfish.Login  operator_user  TestPwd123
 
