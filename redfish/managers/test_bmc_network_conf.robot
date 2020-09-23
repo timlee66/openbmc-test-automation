@@ -5,7 +5,11 @@ Documentation  Network interface configuration and verification
 Resource       ../../lib/bmc_redfish_resource.robot
 Resource       ../../lib/bmc_network_utils.robot
 Resource       ../../lib/openbmc_ffdc.robot
+Resource       ../../lib/ipmi_client.robot
 Library        ../../lib/bmc_network_utils.py
+Library        ../../lib/ipmi_utils.py
+Library        ../../lib/gen_robot_valid.py
+Library        ../../lib/var_funcs.py
 Library        Collections
 
 Test Setup     Test Setup Execution
@@ -238,7 +242,7 @@ Add First Octet Threshold IP And Verify
     [Teardown]  Run Keywords
     ...  Delete IP Address  233.7.7.7  AND  Test Teardown Execution
 
-     Add IP Address  223.7.7.7  ${test_subnet_mask}  ${test_gateway}
+     Add IP Address  233.7.7.7  ${test_subnet_mask}  ${test_gateway}
 
 Add First Octet Lowest IP And Verify
     [Documentation]  Add first octet lowest IP and verify.
@@ -639,11 +643,38 @@ Suite Teardown Execution
 
     OBMC Reboot (off)
 
+Set IPMI Inband Network Configuration
+    [Documentation]  Run sequence of standard IPMI command in-band and set
+    ...              the IP configuration.
+    [Arguments]  ${ip}  ${netmask}  ${gateway}  ${login}=${1}
+
+    # Description of argument(s):
+    # ip       The IP address to be set using ipmitool-inband.
+    # netmask  The Netmask to be set using ipmitool-inband.
+    # gateway  The Gateway address to be set using ipmitool-inband.
+
+    Run Inband IPMI Standard Command
+    ...  lan set ${CHANNEL_NUMBER} ipsrc static  login_host=${login}
+    Sleep  20
+    Run Inband IPMI Standard Command
+    ...  lan set ${CHANNEL_NUMBER} ipaddr ${ip}  login_host=${0}
+    Run Inband IPMI Standard Command
+    ...  lan set ${CHANNEL_NUMBER} netmask ${netmask}  login_host=${0}
+    Run Inband IPMI Standard Command
+    ...  lan set ${CHANNEL_NUMBER} defgw ipaddr ${gateway}  login_host=${0}
+    Sleep  20
+
 Suite Setup Execution
     [Documentation]  Do suite setup execution.
 
-    ${test_gateway}=  Get BMC Default Gateway
-    Set Suite Variable  ${test_gateway}
+    ${lan_config}=  Get LAN Print Dict  ${CHANNEL_NUMBER}
+    Set Suite Variable  ${ip_address}  ${lan_config['IP Address']}
+    Set Suite Variable  ${subnet_mask}  ${lan_config['Subnet Mask']}
+    Set Suite Variable  ${test_gateway}  ${lan_config['Default Gateway IP']}
+
+    Set IPMI Inband Network Configuration  ${ip_address}  ${subnet_mask}
+    ...  ${test_gateway}  login=${1}
+
 
 Update IP Address
     [Documentation]  Update IP address of BMC.
