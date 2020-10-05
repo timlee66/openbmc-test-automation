@@ -121,5 +121,7 @@
 -v IMAGE_UNSIGNED_FILE_PATH:bmc_bad_unsig.static.mtd.tar
 -v IMAGE_HOST_FILE_PATH_0:bios6.tar
 -v IMAGE_HOST_FILE_PATH_1:bios7.tar
+-v IMAGE_MCU_FILE_PATH_0:mcu_03.tar
+-v IMAGE_MCU_FILE_PATH_1:mcu_04.tar
 -v BAD_IMAGES_DIR_PATH:./
 -v HOST_WORK_DIR:/home/cs20/work
