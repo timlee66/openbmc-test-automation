@@ -411,9 +411,6 @@ Start SOL Console Logging
     ${sub_cmd_buf}=  Create OS Console Command String
     # Routing stderr to stdout so that any startup error text will go to the
     # output file.
-    # TODO: Doesn't work with tox so reverting temporarily.
-    # nohup detaches the process completely from our pty.
-    #${cmd_buf}=  Catenate  nohup ${sub_cmd_buf} &> ${log_file_path} &
     ${cmd_buf}=  Catenate  ${sub_cmd_buf} > ${log_file_path} 2>&1 &
     Dprint Issuing  ${cmd_buf}
     ${rc}  ${output}=  Run And Return Rc And Output  ${cmd_buf}
@@ -741,7 +738,7 @@ Install Debug Tarball On BMC
     # Description of arguments:
     # tarball_file_path      Path of the debug tarball file.
     #                        The tar file is downloaded from the build page
-    #                        https://openpower.xyz/job/openbmc-build/
+    #                        https://jenkins.openbmc.org/job/latest-master/
     #                        obmc-phosphor-debug-tarball-witherspoon.tar.xz
     #
     # targ_tarball_dir_path  The directory path where the tarball is to be
@@ -795,9 +792,10 @@ Set BMC Boot Count
 
 Delete Error Log Entry
     [Documentation]  Delete error log entry.
-    [Arguments]  ${entry_path}
+    [Arguments]  ${entry_path}  ${quiet}=${0}
 
     # Description of argument(s):
+    # quiet    If enabled, turns off logging to console.
     # entry_path  Delete an error log entry.
     #             Ex. /xyz/openbmc_project/logging/entry/1
 
@@ -810,7 +808,7 @@ Delete Error Log Entry
     Return From Keyword If  ${callout_entry}
 
     ${data}=  Create Dictionary  data=@{EMPTY}
-    ${resp}=  Openbmc Delete Request  ${entry_path}  data=${data}
+    ${resp}=  Openbmc Delete Request  ${entry_path}  data=${data}  quiet=${quiet}
     Should Be Equal As Strings  ${resp.status_code}  ${HTTP_OK}
 
 

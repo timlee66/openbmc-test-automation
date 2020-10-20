@@ -4,6 +4,7 @@ Documentation   This suite tests Platform Event Log (PEL) functionality of OpenB
 Library         ../../lib/pel_utils.py
 Variables       ../../data/pel_variables.py
 Resource        ../../lib/list_utils.robot
+Resource        ../../lib/logging_utils.robot
 Resource        ../../lib/openbmc_ffdc.robot
 
 Test Setup      Redfish.Login
@@ -15,6 +16,20 @@ Test Teardown   Run Keywords  Redfish.Logout  AND  FFDC On Test Case Fail
 ${CMD_INTERNAL_FAILURE}  busctl call xyz.openbmc_project.Logging /xyz/openbmc_project/logging
 ...  xyz.openbmc_project.Logging.Create Create ssa{ss} xyz.openbmc_project.Common.Error.InternalFailure
 ...  xyz.openbmc_project.Logging.Entry.Level.Error 0
+
+${CMD_FRU_CALLOUT}  busctl call xyz.openbmc_project.Logging /xyz/openbmc_project/logging
+...  xyz.openbmc_project.Logging.Create Create ssa{ss} xyz.openbmc_project.Common.Error.Timeout
+...  xyz.openbmc_project.Logging.Entry.Level.Error 2 "TIMEOUT_IN_MSEC" "5"
+...  "CALLOUT_INVENTORY_PATH" "/xyz/openbmc_project/inventory/system/chassis/motherboard"
+
+${CMD_PROCEDURAL_SYMBOLIC_FRU_CALLOUT}  busctl call xyz.openbmc_project.Logging /xyz/openbmc_project/logging
+...  xyz.openbmc_project.Logging.Create Create ssa{ss} org.open_power.Logging.Error.TestError1
+...  xyz.openbmc_project.Logging.Entry.Level.Error 0
+
+${CMD_INVENTORY_PREFIX}  busctl get-property xyz.openbmc_project.Inventory.Manager
+...  /xyz/openbmc_project/inventory/system/chassis/motherboard
+
+@{mandatory_pel_fileds}   Private Header  User Header  Primary SRC  Extended User Header  Failing MTMS
 
 
 *** Test Cases ***
@@ -76,6 +91,20 @@ Verify PEL Log Details
     ${bmc_time2_epoch}=  Convert Date  ${bmc_time2}  epoch
 
     Should Be True  ${bmc_time1_epoch} <= ${pel_time_epoch} <= ${bmc_time2_epoch}
+
+
+Verify Mandatory Sections Of Error Log PEL
+    [Documentation]  Verify mandatory sections of error log PEL.
+    [Tags]  Verify_Mandatory_Sections_Of_Error_Log_PEL
+
+    Create Test PEL Log
+
+    ${pel_ids}=  Get PEL Log Via BMC CLI
+    ${pel_id}=  Get From List  ${pel_ids}  -1
+    ${pel_output}=  Peltool  -i ${pel_id}
+    ${pel_sections}=  Get Dictionary Keys  ${pel_output}
+
+    List Should Contain Sub List  ${pel_sections}  ${mandatory_pel_fileds}
 
 
 Verify PEL Log Persistence After BMC Reboot
@@ -255,6 +284,134 @@ Verify BMC Event Log ID
     Valid Value  pel_bmc_event_log_id  ['${redfish_event_logs['Members'][0]['Id']}']
 
 
+Verify FRU Callout
+    [Documentation]  Verify FRU callout entries from PEL log.
+    [Tags]  Verify_FRU_Callout
+
+    Create Test PEL Log  FRU Callout
+
+    ${pel_ids}=  Get PEL Log Via BMC CLI
+    ${id}=  Get From List  ${pel_ids}  -1
+    ${pel_callout_section}=  Get PEL Field Value  ${id}  Primary SRC  Callout Section
+
+    # Example of PEL Callout Section from "peltool -i <id>" command.
+    #  [Callouts]:
+    #    [0]:
+    #      [FRU Type]:                 Normal Hardware FRU
+    #      [Priority]:                 Mandatory, replace all with this type as a unit
+    #      [Location Code]:            U78DA.ND1.1234567-P0
+    #      [Part Number]:              F191014
+    #      [CCIN]:                     2E2D
+    #      [Serial Number]:            YL2E2D010000
+    #  [Callout Count]:                1
+
+    Valid Value  pel_callout_section['Callout Count']  ['1']
+    Valid Value  pel_callout_section['Callouts'][0]['FRU Type']  ['Normal Hardware FRU']
+    Should Contain  ${pel_callout_section['Callouts'][0]['Priority']}  Mandatory
+
+    # Verify Location Code field of PEL callout with motherboard's Location Code.
+    ${busctl_output}=  BMC Execute Command  ${CMD_INVENTORY_PREFIX} com.ibm.ipzvpd.Location LocationCode
+    Should Be Equal  ${pel_callout_section['Callouts'][0]['Location Code']}
+    ...  ${busctl_output[0].split('"')[1].strip('"')}
+
+    # TODO: Compare CCIN and part number fields of PEL callout with Redfish or busctl output.
+    Should Match Regexp  ${pel_callout_section['Callouts'][0]['CCIN']}  [a-zA-Z0-9]
+    Should Match Regexp  ${pel_callout_section['Callouts'][0]['Part Number']}  [a-zA-Z0-9]
+
+    # Verify Serial Number field of PEL callout with motherboard's Serial Number.
+    ${busctl_output}=  BMC Execute Command
+    ...  ${CMD_INVENTORY_PREFIX} xyz.openbmc_project.Inventory.Decorator.Asset SerialNumber
+    Should Be Equal  ${pel_callout_section['Callouts'][0]['Serial Number']}
+    ...  ${busctl_output[0].split('"')[1].strip('"')}
+
+
+Verify Procedure And Symbolic FRU Callout
+    [Documentation]  Verify procedure and symbolic FRU callout from PEL log.
+    [Tags]  Verify_Procedure_And_Symbolic_FRU_Callout
+
+    Create Test PEL Log   Procedure And Symbolic FRU Callout
+
+    ${pel_ids}=  Get PEL Log Via BMC CLI
+    ${id}=  Get From List  ${pel_ids}  -1
+    ${pel_callout_section}=  Get PEL Field Value  ${id}  Primary SRC  Callout Section
+
+    # Example of PEL Callout Section from "peltool -i <id>" command.
+    #  [Callouts]:
+    #    [0]:
+    #      [Priority]:                                 Mandatory, replace all with this type as a unit
+    #      [Procedure Number]:                         BMCSP02
+    #      [FRU Type]:                                 Maintenance Procedure Required
+    #    [1]:
+    #      [Priority]:                                 Medium Priority
+    #      [Part Number]:                              SVCDOCS
+    #      [FRU Type]:                                 Symbolic FRU
+    #  [Callout Count]:                                2
+
+    Valid Value  pel_callout_section['Callout Count']  ['2']
+
+    # Verify procedural callout info.
+
+    Valid Value  pel_callout_section['Callouts'][0]['FRU Type']  ['Maintenance Procedure Required']
+    Should Contain  ${pel_callout_section['Callouts'][0]['Priority']}  Mandatory
+    # Verify if "Procedure Number" field of PEL has an alphanumeric value.
+    Should Match Regexp  ${pel_callout_section['Callouts'][0]['Procedure Number']}  [a-zA-Z0-9]
+
+    # Verify procedural callout info.
+
+    Valid Value  pel_callout_section['Callouts'][1]['FRU Type']  ['Symbolic FRU']
+    Should Contain  ${pel_callout_section['Callouts'][1]['Priority']}  Medium Priority
+    # Verify if "Part Number" field of Symbolic FRU has an alphanumeric value.
+    Should Match Regexp  ${pel_callout_section['Callouts'][1]['Part Number']}  [a-zA-Z0-9]
+
+
+Verify PEL Log Entry For Event Log
+    [Documentation]  Create an event log and verify PEL log entry in BMC for the same.
+    [Tags]  Verify_PEL_Log_Entry_For_Event_Log
+
+    Redfish Purge Event Log
+    # Create an internal failure error log.
+    BMC Execute Command  ${CMD_INTERNAL_FAILURE}
+
+    ${elog_entry}=  Get Event Logs
+    # Example of Redfish event logs:
+    # elog_entry:
+    #  [0]:
+    #    [Message]:                                    xyz.openbmc_project.Common.Error.InternalFailure
+    #    [Created]:                                    2020-04-20T01:55:22+00:00
+    #    [Id]:                                         1
+    #    [@odata.id]:                                  /redfish/v1/Systems/system/LogServices/EventLog/Entries/1
+    #    [@odata.type]:                                #LogEntry.v1_4_0.LogEntry
+    #    [EntryType]:                                  Event
+    #    [Severity]:                                   Critical
+    #    [Name]:                                       System Event Log Entry
+
+    ${redfish_log_time}=  Convert Date  ${elog_entry[0]["Created"]}  epoch
+
+    ${pel_records}=  Peltool  -l
+    # Example output from 'Peltool  -l':
+    # pel_records:
+    # [0x50000023]:
+    #   [SRC]:                                        BD8D1002
+    #   [CreatorID]:                                  BMC
+    #   [Message]:                                    An application had an internal failure
+    #   [CompID]:                                     0x1000
+    #   [PLID]:                                       0x50000023
+    #   [Commit Time]:                                04/20/2020 01:55:22
+    #   [Subsystem]:                                  BMC Firmware
+    #   [Sev]:                                        Unrecoverable Error
+
+    ${ids}=  Get Dictionary Keys  ${pel_records}
+    ${id}=  Get From List  ${ids}  0
+    ${pel_log_time}=  Convert Date  ${pel_records['${id}']['Commit Time']}  epoch
+    ...  date_format=%m/%d/%Y %H:%M:%S
+
+    # Verify that both Redfish event and PEL has log entry for internal error with same time stamp.
+    Should Contain Any  ${pel_records['${id}']['Message']}  internal failure  ignore_case=True
+    Should Contain Any  ${elog_entry[0]['Message']}  InternalFailure  ignore_case=True
+
+    Should Be Equal  ${redfish_log_time}  ${pel_log_time}
+
+
 Verify Delete All PEL
     [Documentation]  Verify deleting all PEL logs.
     [Tags]  Verify_Delete_All_PEL
@@ -271,6 +428,10 @@ Verify Delete All PEL
 
 Create Test PEL Log
     [Documentation]  Generate test PEL log.
+    [Arguments]  ${pel_type}=Internal Failure
+
+    # Description of argument(s):
+    # pel_type      The PEL type (e.g. Internal Failure, FRU Callout, Procedural Callout).
 
     # Test PEL log entry example:
     # {
@@ -286,7 +447,12 @@ Create Test PEL Log
     #    }
     # }
 
-    BMC Execute Command  ${CMD_INTERNAL_FAILURE}
+    Run Keyword If  '${pel_type}' == 'Internal Failure'
+    ...   BMC Execute Command  ${CMD_INTERNAL_FAILURE}
+    ...  ELSE IF  '${pel_type}' == 'FRU Callout'
+    ...   BMC Execute Command  ${CMD_FRU_CALLOUT}
+    ...  ELSE IF  '${pel_type}' == 'Procedure And Symbolic FRU Callout'
+    ...   BMC Execute Command  ${CMD_PROCEDURAL_SYMBOLIC_FRU_CALLOUT}
 
 
 Get PEL Log IDs

@@ -47,7 +47,7 @@ Get To Stable State
     ...  Wait For Host To Ping  ${OPENBMC_HOST}  2 mins
 
     # Check if the ping works using 1400 MTU.
-    Run Keyword if  ${ping_status} == ${True}  MTU Ping Test
+    #Run Keyword if  ${ping_status} == ${True}  MTU Ping Test
 
     Run Keyword if  ${ping_status} == ${False}
     ...  Fail  ${OPENBMC_HOST} ping test failed.
@@ -73,6 +73,7 @@ Get To Stable State
     Run Keyword And Ignore Error  Delete All Error Logs
     Run Keyword And Ignore Error  Redfish Purge Event Log
     Run Keyword And Ignore Error  Delete All Dumps
+    Run Keyword And Ignore Error  Redfish Delete All BMC Dumps
     Run Keyword And Ignore Error  Delete All Redfish Sessions
     Check For Current Boot Application Failures
 

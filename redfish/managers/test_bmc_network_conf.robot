@@ -115,15 +115,14 @@ Get Hostname And Verify
 Configure Hostname And Verify
     [Documentation]  Configure hostname via Redfish and verify.
     [Tags]  Configure_Hostname_And_Verify
+    [Teardown]  Run Keywords
+    ...  Configure Hostname  ${hostname}  AND  Validate Hostname On BMC  ${hostname}
 
     ${hostname}=  Redfish_Utils.Get Attribute  ${REDFISH_NW_PROTOCOL_URI}  HostName
 
     Configure Hostname  ${test_hostname}
     Validate Hostname On BMC  ${test_hostname}
 
-    # Revert back to initial hostname.
-    Configure Hostname  ${hostname}
-    Validate Hostname On BMC  ${hostname}
 
 Add Valid IPv4 Address And Verify
     [Documentation]  Add IPv4 Address via Redfish and verify.
@@ -240,7 +239,7 @@ Add First Octet Threshold IP And Verify
     [Documentation]  Add first octet threshold IP and verify.
     [Tags]  Add_First_Octet_Threshold_IP_And_Verify
     [Teardown]  Run Keywords
-    ...  Delete IP Address  233.7.7.7  AND  Test Teardown Execution
+    ...  Delete IP Address  223.7.7.7  AND  Test Teardown Execution
 
      Add IP Address  233.7.7.7  ${test_subnet_mask}  ${test_gateway}
 
@@ -487,8 +486,7 @@ Modify IPv4 Address And Verify
     [Documentation]  Modify IP address via Redfish and verify.
     [Tags]  Modify_IPv4_Addres_And_Verify
     [Teardown]  Run Keywords
-    ...  Delete IP Address  ${test_ipv4_addr2}  AND  Delete IP Address  ${test_ipv4_addr}
-    ...  AND  Test Teardown Execution
+    ...  Delete IP Address  ${test_ipv4_addr2}  AND  Test Teardown Execution
 
      Add IP Address  ${test_ipv4_addr}  ${test_subnet_mask}  ${test_gateway}
 
@@ -574,7 +572,8 @@ Verify CLI and Redfish Nameservers
     ${active_channel_config}=  Get Active Channel Config
     ${ethernet_interface}=  Set Variable  ${active_channel_config['${CHANNEL_NUMBER}']['name']}
 
-    ${redfish_nameservers}=  Redfish.Get Attribute  ${REDFISH_NW_ETH_IFACE}${ethernet_interface}  StaticNameServers
+    ${redfish_nameservers}=  Redfish.Get Attribute
+    ...  ${REDFISH_NW_ETH_IFACE}${ethernet_interface}  StaticNameServers
     ${resolve_conf_nameservers}=  CLI Get Nameservers
     Rqprint Vars  redfish_nameservers  resolve_conf_nameservers
 
@@ -596,7 +595,8 @@ Configure Static Name Servers
     ${ethernet_interface}=  Set Variable  ${active_channel_config['${CHANNEL_NUMBER}']['name']}
 
     # Currently BMC is sending 500 response code instead of 400 for invalid scenarios.
-    Redfish.Patch  ${REDFISH_NW_ETH_IFACE}${ethernet_interface}  body={'StaticNameServers': ${static_name_servers}}
+    Redfish.Patch  ${REDFISH_NW_ETH_IFACE}${ethernet_interface}
+    ...  body={'StaticNameServers': ${static_name_servers}}
     ...  valid_status_codes=[${valid_status_codes}, ${HTTP_INTERNAL_SERVER_ERROR}]
 
     # Patch operation takes 1 to 3 seconds to set new value.
@@ -616,7 +616,7 @@ Configure Static Name Servers
 Delete Static Name Servers
     [Documentation]  Delete static name servers.
 
-    Configure Static Name Servers  @{EMPTY}
+    Configure Static Name Servers  static_name_servers=@{EMPTY}
 
     # Check if all name servers deleted on BMC.
     ${nameservers}=  CLI Get Nameservers
@@ -630,7 +630,8 @@ DNS Test Setup Execution
     ${active_channel_config}=  Get Active Channel Config
     ${ethernet_interface}=  Set Variable  ${active_channel_config['${CHANNEL_NUMBER}']['name']}
 
-    ${original_nameservers}=  Redfish.Get Attribute  ${REDFISH_NW_ETH_IFACE}${ethernet_interface}  StaticNameServers
+    ${original_nameservers}=  Redfish.Get Attribute
+    ...  ${REDFISH_NW_ETH_IFACE}${ethernet_interface}  StaticNameServers
 
     Rprint Vars  original_nameservers
     # Set suite variables to trigger restoration during teardown.

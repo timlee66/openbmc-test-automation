@@ -5,18 +5,34 @@ BMC redfish utility functions.
 """
 
 import json
+import re
 from robot.libraries.BuiltIn import BuiltIn
 import gen_print as gp
 
 
 class bmc_redfish_utils(object):
 
+    ROBOT_LIBRARY_SCOPE = 'TEST SUITE'
+
     def __init__(self):
         r"""
         Initialize the bmc_redfish_utils object.
         """
         # Obtain a reference to the global redfish object.
+        self.__inited__ = False
         self._redfish_ = BuiltIn().get_library_instance('redfish')
+
+        # There is a possibility that a given driver support both redfish and
+        # legacy REST.
+        self._redfish_.login()
+        self._rest_response_ = \
+            self._redfish_.get("/xyz/openbmc_project/", valid_status_codes=[200, 404])
+
+        # If REST URL /xyz/openbmc_project/ is supported.
+        if self._rest_response_.status == 200:
+            self.__inited__ = True
+
+        BuiltIn().set_global_variable("${REDFISH_REST_SUPPORTED}", self.__inited__)
 
     def get_redfish_session_info(self):
         r"""
@@ -66,6 +82,62 @@ class bmc_redfish_utils(object):
 
         resp = self._redfish_.get(resource_path)
         return resp.dict
+
+    def get_members_uri(self, resource_path, attribute):
+        r"""
+        Returns the list of valid path which has a given attribute.
+
+        Description of argument(s):
+        resource_path            URI resource base path (e.g.
+                                 '/redfish/v1/Systems/',
+                                 '/redfish/v1/Chassis/').
+        attribute                Name of the attribute (e.g. 'PowerSupplies').
+        """
+
+        # Set quiet variable to keep subordinate get() calls quiet.
+        quiet = 1
+
+        # Get the member id list.
+        # e.g. ['/redfish/v1/Chassis/foo', '/redfish/v1/Chassis/bar']
+        resource_path_list = self.get_member_list(resource_path)
+
+        valid_path_list = []
+
+        for path_idx in resource_path_list:
+            # Get all the child object path under the member id e.g.
+            # ['/redfish/v1/Chassis/foo/Power','/redfish/v1/Chassis/bar/Power']
+            child_path_list = self.list_request(path_idx)
+
+            # Iterate and check if path object has the attribute.
+            for child_path_idx in child_path_list:
+                if ('JsonSchemas' in child_path_idx)\
+                        or ('SessionService' in child_path_idx)\
+                        or ('#' in child_path_idx):
+                    continue
+                if self.get_attribute(child_path_idx, attribute):
+                    valid_path_list.append(child_path_idx)
+
+        BuiltIn().log_to_console(valid_path_list)
+        return valid_path_list
+
+    def get_endpoint_path_list(self, resource_path, end_point_prefix):
+        r"""
+        Returns list with entries ending in "/endpoint".
+
+        Description of argument(s):
+        resource_path      URI resource base path (e.g. "/redfish/v1/Chassis/").
+        end_point_prefix   Name of the endpoint (e.g. 'Power').
+
+        Find all list entries ending in "/endpoint" combination such as
+        /redfish/v1/Chassis/<foo>/Power
+        /redfish/v1/Chassis/<bar>/Power
+        """
+
+        end_point_list = self.list_request(resource_path)
+
+        # Regex to match entries ending in "/prefix" with optional underscore.
+        regex = ".*/" + end_point_prefix + "[_]?[0-9]*?"
+        return [x for x in end_point_list if re.match(regex, x, re.IGNORECASE)]
 
     def get_target_actions(self, resource_path, target_attribute):
         r"""

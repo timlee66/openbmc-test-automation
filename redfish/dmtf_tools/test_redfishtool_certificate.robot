@@ -21,6 +21,7 @@ Suite Setup       Suite Setup Execution
 ${root_cmd_args} =  SEPARATOR=
 ...  redfishtool raw -r ${OPENBMC_HOST} -u ${OPENBMC_USERNAME} -p ${OPENBMC_PASSWORD} -S Always
 
+${invalid_value}  abc
 
 *** Test Cases ***
 
@@ -98,7 +99,144 @@ Verify Redfishtool Client Certificate Install Errors
     Client  Valid Certificate Empty Privatekey  error
 
 
+Verify Redfishtool CA Certificate Install Errors
+    [Documentation]  Verify error while installing invalid CA certificate.
+    [Tags]  Verify_Redfishtool_CA_Certificate_Install_Errors
+    [Template]  Verify Redfishtool Install Certificate
+
+    # cert_type  cert_format        expected_status
+    CA           Empty Certificate  error
+
+
+Verify Error While Uploding Same CA Certificate Via Redfishtool
+    [Documentation]  Verify error while uploading same CA certificate two times.
+    [Tags]  Verify_Error_While_Uploding_Same_CA_Certificate_Via_Redfishtool
+
+    # Create certificate file for uploading.
+    ${cert_file_path}=  Generate Certificate File Via Openssl  Valid Certificate  365
+    ${bytes}=  OperatingSystem.Get Binary File  ${cert_file_path}
+    ${file_data}=  Decode Bytes To String  ${bytes}  UTF-8
+
+    # Install CA certificate.
+    Redfishtool Install Certificate File On BMC  ${REDFISH_CA_CERTIFICATE_URI}  ok  data=${file_data}
+
+    # Adding delay after certificate installation.
+    Sleep  30s
+
+    # Check error while uploading same certificate.
+    Redfishtool Install Certificate File On BMC  ${REDFISH_CA_CERTIFICATE_URI}  error  data=${file_data}
+
+
+Install Server Certificate Using Redfishtool And Verify Via OpenSSL
+    [Documentation]  Install server certificate using Redfishtool and verify via OpenSSL.
+    [Tags]  Install_Server_Certificate_Using_Redfishtool_And_Verify_Via_OpenSSL.
+
+    ${cert_file_path}=  Generate Certificate File Via Openssl  Valid Certificate Valid Privatekey
+    ${bytes}=  OperatingSystem.Get Binary File  ${cert_file_path}
+    ${file_data}=  Decode Bytes To String  ${bytes}  UTF-8
+
+    ${certificate_dict}=  Create Dictionary
+    ...  @odata.id=/redfish/v1/Managers/bmc/NetworkProtocol/HTTPS/Certificates/1
+
+    ${dict_objects}=  Create Dictionary  CertificateString=${file_data}
+    ...  CertificateType=PEM  CertificateUri=${certificate_dict}
+
+    ${string}=  Convert To String  ${dict_objects}
+    ${string}=  Replace String  ${string}  '  "
+    ${payload}=  Set Variable  '${string}'
+
+    ${response}=  Redfishtool Post
+    ...  ${payload}  /redfish/v1/CertificateService/Actions/CertificateService.ReplaceCertificate
+
+    Wait Until Keyword Succeeds  2 mins  15 secs  Verify Certificate Visible Via OpenSSL  ${cert_file_path}
+
+
+Verify CSR Generation For Server Certificate Via Redfishtool
+    [Documentation]  Verify CSR generation for server certificate.
+    [Tags]  Verify_CSR_Generation_For_Server_Certificate_Via_Redfishtool
+    [Template]  Generate CSR Via Redfishtool
+
+    # csr_type  key_pair_algorithm  key_bit_length  key_curv_id  expected_status
+    Server      RSA                 ${2048}         ${EMPTY}     ok
+    Server      EC                  ${EMPTY}        prime256v1   ok
+    Server      EC                  ${EMPTY}        secp521r1    ok
+    Server      EC                  ${EMPTY}        secp384r1    ok
+
+
+Verify CSR Generation For Client Certificate Via Redfishtool
+    [Documentation]  Verify CSR generation for client certificate.
+    [Tags]  Verify_CSR_Generation_For_Client_Certificate_Via_Redfishtool
+    [Template]  Generate CSR Via Redfishtool
+
+    # csr_type  key_pair_algorithm  key_bit_length  key_curv_id  expected_status
+    Client      RSA                 ${2048}         ${EMPTY}     ok
+    Client      EC                  ${EMPTY}        prime256v1   ok
+    Client      EC                  ${EMPTY}        secp521r1    ok
+    Client      EC                  ${EMPTY}        secp384r1    ok
+
+
+Verify CSR Generation For Server Certificate With Invalid Value Via Redfishtool
+    [Documentation]  Verify error while generating CSR for server certificate with invalid value.
+    [Tags]  Verify_CSR_Generation_For_Server_Certificate_With_Invalid_Value_Via_Redfishtool
+    [Template]  Generate CSR Via Redfishtool
+
+    # csr_type  key_pair_algorithm  key_bit_length    key_curv_id       expected_status
+    Server      ${invalid_value}    ${2048}           prime256v1        error
+    Server      RAS                 ${invalid_value}  ${EMPTY}          error
+
+
+Verify CSR Generation For Client Certificate With Invalid Value Via Redfishtool
+    [Documentation]  Verify error while generating CSR for client certificate with invalid value.
+    [Tags]  Verify_CSR_Generation_For_Client_Certificate_With_Invalid_Value_Via_Redfishtool
+    [Template]  Generate CSR Via Redfishtool
+
+    Client      ${invalid_value}    ${2048}           prime256v1        error
+    Client      RSA                 ${invalid_value}  ${EMPTY}          error
+
 *** Keywords ***
+
+
+Generate CSR Via Redfishtool
+    [Documentation]  Generate CSR using Redfish.
+    [Arguments]  ${cert_type}  ${key_pair_algorithm}  ${key_bit_length}  ${key_curv_id}  ${expected_status}
+
+    # Description of argument(s):
+    # cert_type           Certificate type ("Server" or "Client").
+    # key_pair_algorithm  CSR key pair algorithm ("EC" or "RSA").
+    # key_bit_length      CSR key bit length ("2048").
+    # key_curv_id         CSR key curv id ("prime256v1" or "secp521r1" or "secp384r1").
+    # expected_status     Expected status of certificate replace Redfishtool request ("ok" or "error").
+
+    ${certificate_uri}=  Set Variable If
+    ...  '${cert_type}' == 'Server'  ${REDFISH_HTTPS_CERTIFICATE_URI}/
+    ...  '${cert_type}' == 'Client'  ${REDFISH_LDAP_CERTIFICATE_URI}/
+
+    ${certificate_dict}=  Create Dictionary  @odata.id=${certificate_uri}
+
+    ${csr_dict}=  Create Dictionary  City=Austin  CertificateCollection=${certificate_dict}
+    ...  CommonName=${OPENBMC_HOST}  Country=US  Organization=IBM
+    ...  OrganizationalUnit=ISL  State=AU  KeyBitLength=${key_bit_length}
+    ...  KeyPairAlgorithm=${key_pair_algorithm}  KeyCurveId=${key_curv_id}
+
+    # Remove not applicable field for CSR generation.
+    Run Keyword If  '${key_pair_algorithm}' == 'EC'  Remove From Dictionary  ${csr_dict}  KeyBitLength
+    ...  ELSE IF  '${key_pair_algorithm}' == 'RSA'  Remove From Dictionary  ${csr_dict}  KeyCurveId
+
+    ${expected_resp}=  Set Variable If  '${expected_status}' == 'ok'  ${HTTP_OK}
+    ...  '${expected_status}' == 'error'  ${HTTP_BAD_REQUEST}
+
+    ${string}=  Convert To String  ${csr_dict}
+
+    ${string2}=  Replace String  ${string}   '  "
+
+    ${payload}=  Set Variable  '${string2}'
+
+    ${response}=  Redfishtool Post
+    ...  ${payload}  /redfish/v1/CertificateService/Actions/CertificateService.GenerateCSR
+    ...  expected_error=${expected_resp}
+
+    # Delay added between two CSR generation request.
+    Sleep  5s
 
 
 Verify Redfishtool Install Certificate

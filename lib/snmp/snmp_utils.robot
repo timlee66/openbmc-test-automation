@@ -58,10 +58,11 @@ Get List Of SNMP Manager And Port Configured On BMC
     #      "Port": 186
     #    },
 
-    : FOR  ${snmp_uri}  IN   @{snmp_uri_list}
-    \  ${ip}=  Read Attribute  ${snmp_uri}  Address
-    \  ${port}=  Read Attribute  ${snmp_uri}  Port
-    \  Append To List  ${ip_and_port_list}  ${ip}  ${port}
+    FOR  ${snmp_uri}  IN   @{snmp_uri_list}
+      ${ip}=  Read Attribute  ${snmp_uri}  Address
+      ${port}=  Read Attribute  ${snmp_uri}  Port
+      Append To List  ${ip_and_port_list}  ${ip}  ${port}
+    END
 
     [Return]  @{ip_and_port_list}
 
@@ -92,11 +93,12 @@ Get SNMP Manager Object
     # port           Network port where SNMP manager is listening.
 
     ${snmp_objs}=  Read Properties  ${SNMP_MANAGER_URI}enumerate
-    : FOR  ${snmp_obj}  IN   @{snmp_objs}
-    \  ${obj}=  Set Variable  ${snmp_objs['${snmp_obj}']}
-    \   Run Keyword If
-    ...  '${obj['Address']}' == '${ip}' and '${obj['Port']}' == '${port}'
-    ...    Return From Keyword  ${snmp_obj}
+    FOR  ${snmp_obj}  IN   @{snmp_objs}
+        ${obj}=  Set Variable  ${snmp_objs['${snmp_obj}']}
+        Run Keyword If
+        ...  '${obj['Address']}' == '${ip}' and '${obj['Port']}' == '${port}'
+        ...    Return From Keyword  ${snmp_obj}
+    END
 
     Return From Keyword  ${EMPTY}
 

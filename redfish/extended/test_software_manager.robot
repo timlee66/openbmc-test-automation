@@ -26,7 +26,7 @@ Verify Software Purposes
     FOR  ${uri}  IN  @{object_uris}
       ${object}=  Read Properties  ${uri}
       Continue For Loop If  not 'Purpose' in ${object}
-      Should Contain Any  &{object}[Purpose]  ${VERSION_PURPOSE_HOST}  ${VERSION_PURPOSE_BMC}
+      Should Contain Any  ${object}[Purpose]  ${VERSION_PURPOSE_HOST}  ${VERSION_PURPOSE_BMC}
       ...  ${VERSION_PURPOSE_ME}  ${VERSION_PURPOSE_MCU}
     END
 
@@ -131,9 +131,10 @@ Verify Software Hex IDs
 
     ${software_ids}=  Get Software Objects Id  ${software_purpose}
 
-    : FOR  ${id}  IN  @{software_ids}
-    \  Length Should Be  ${id}  ${8}
-    \  Should Match Regexp  ${id}  [0-9a-f]*
+    FOR  ${id}  IN  @{software_ids}
+      Length Should Be  ${id}  ${8}
+      Should Match Regexp  ${id}  [0-9a-f]*
+    END
 
 
 Verify Software Path
@@ -142,10 +143,11 @@ Verify Software Path
 
     ${software_uris}=  Get Software Objects  ${software_purpose}
 
-    : FOR  ${uri}  IN  @{software_uris}
-    \  ${software_object}=  Get Host Software Property  ${uri}
-    \  Return From Keyword If  len('&{software_object}[Path]') == ${0}
-    \  BMC Execute Command  [ -d "${path}" ]
+    FOR  ${uri}  IN  @{software_uris}
+      ${software_object}=  Get Host Software Property  ${uri}
+      Return From Keyword If  len('${software_object}[Path]') == ${0}
+      BMC Execute Command  [ -d "${path}" ]
+    END
 
 
 Verify Software RequestedActivation
@@ -154,10 +156,10 @@ Verify Software RequestedActivation
 
     ${software_uris}=  Get Software Objects  ${software_purpose}
 
-    : FOR  ${uri}  IN  @{software_uris}
-    \  ${software_object}=  Get Host Software Property  ${uri}
-    \  Should Contain Any  &{software_object}[RequestedActivation]
-    ...  ${REQUESTED_ACTIVE}  ${REQUESTED_NONE}
+    FOR  ${uri}  IN  @{software_uris}
+      ${software_object}=  Get Host Software Property  ${uri}
+      Should Contain Any  ${software_object}[RequestedActivation]  ${REQUESTED_ACTIVE}  ${REQUESTED_NONE}
+    END
 
 
 Verify Software Activation Association
@@ -192,8 +194,9 @@ Verify Software Activation Association
 
     ${obj_path_list}=  Get Software Objects  ${software_purpose}
 
-    : FOR  ${index}  IN  @{obj_path_list}
-    \  Verify Inventory Association  ${index}  ${assoiation_path}
+    FOR  ${index}  IN  @{obj_path_list}
+      Verify Inventory Association  ${index}  ${assoiation_path}
+    END
 
 
 Verify Inventory Association
@@ -239,12 +242,15 @@ Verify Software Version
     #   "/xyz/openbmc_project/software/2f974579",
     #   "/xyz/openbmc_project/software/136cf504"
     # ]
+
     ${obj_list}=  Get Software Objects  ${software_purpose}
-    : FOR  ${index}  IN  @{obj_list}
-    \  ${resp}=  Get Host Software Property  ${index}
-    \  Verify Software Properties  ${resp}  ${software_purpose}
-    \  Run Keyword If  '${software_purpose}' == '${VERSION_PURPOSE_BMC}'
-    ...  Check BMC Version  ${index}  ${resp["Version"]}
+
+    FOR  ${index}  IN  @{obj_list}
+      ${resp}=  Get Host Software Property  ${index}
+      Verify Software Properties  ${resp}  ${software_purpose}
+      Run Keyword If  '${software_purpose}' == '${VERSION_PURPOSE_BMC}'
+      ...  Check BMC Version  ${index}  ${resp["Version"]}
+    END
 
 
 Verify Software Properties

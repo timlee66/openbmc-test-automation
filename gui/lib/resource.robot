@@ -34,6 +34,10 @@ ${obmc_PowerStandby_state}   Standby
 ${GUI_BROWSER}               ff
 ${GUI_MODE}                  headless
 
+${CMD_INTERNAL_FAILURE}      busctl call xyz.openbmc_project.Logging /xyz/openbmc_project/logging
+...  xyz.openbmc_project.Logging.Create Create ssa{ss} xyz.openbmc_project.Common.Error.InternalFailure
+...  xyz.openbmc_project.Logging.Entry.Level.Error 0
+
 *** Keywords ***
 Launch OpenBMC GUI Browser
     [Documentation]  Launch the OpenBMC GUI URL on a browser.
@@ -198,7 +202,7 @@ Click Yes Button
 LogOut OpenBMC GUI
     [Documentation]  Log out of OpenBMC GUI.
     SSHLibrary.Close All Connections
-    # Passing direct id element "header" as an argument to Click Element.
+    Click Button  ${xpath_button_user_action}
     Click Element  ${xpath_button_logout}
     Wait Until Page Contains Element  ${xpath_button_login}
 
@@ -289,5 +293,42 @@ Launch Browser And Login OpenBMC GUI
 Logout And Close Browser
     [Documentation]  Logout from openbmc application and close the browser.
 
-    Click Element  //*[text()='Log out']
+    Click Button  ${xpath_button_user_action}
+    Click Button  ${xpath_button_logout}
     Close Browser
+
+
+Launch Browser And Login GUI
+    [Documentation]  Launch browser and login to OpenBMC GUI.
+
+    Open Browser With URL  ${obmc_gui_url}
+    Login GUI  ${OPENBMC_USERNAME}  ${OPENBMC_PASSWORD}
+
+
+Login GUI
+    [Documentation]  Login to OpenBMC GUI.
+    [Arguments]  ${username}=${OPENBMC_USERNAME}  ${password}=${OPENBMC_PASSWORD}
+
+    # Description of argument(s):
+    # username  The username to be used for login.
+    # password  The password to be used for login.
+
+    Go To  ${obmc_gui_url}
+    Wait Until Element Is Enabled  ${xpath_textbox_username}
+    Input Text  ${xpath_textbox_username}  ${username}
+    Input Password  ${xpath_textbox_password}  ${password}
+    Click Element  ${xpath_login_button}
+    Wait Until Page Contains  Overview  timeout=30s
+
+
+Logout GUI
+    [Documentation]  Logout of OpenBMC GUI.
+
+    Click Element  ${xpath_logout_button}
+    Wait Until Page Contains Element  ${xpath_login_button}
+
+
+Generate Test Error Log
+    [Documentation]  Generate test error log.
+
+    BMC Execute Command  ${CMD_INTERNAL_FAILURE}

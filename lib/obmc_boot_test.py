@@ -31,6 +31,8 @@ import gen_robot_keyword as grk
 import state as st
 import var_stack as vs
 import gen_plug_in_utils as gpu
+import pel_utils as pel
+import logging_utils as log
 
 base_path = os.path.dirname(os.path.dirname(
                             imp.find_module("gen_robot_print")[1])) +\
@@ -65,18 +67,21 @@ status_dir_path = os.environ.get('STATUS_DIR_PATH', "")
 if status_dir_path != "":
     status_dir_path = os.path.normpath(status_dir_path) + os.sep
 redfish_supported = BuiltIn().get_variable_value("${REDFISH_SUPPORTED}", default=False)
+redfish_rest_supported = BuiltIn().get_variable_value("${REDFISH_REST_SUPPORTED}", default=False)
 if redfish_supported:
     redfish = BuiltIn().get_library_instance('redfish')
     default_power_on = "Redfish Power On"
     default_power_off = "Redfish Power Off"
-    delete_errlogs_cmd = "Delete Error Logs"
-    # TODO: delete_errlogs_cmd="Redfish Purge Event Log"
-    # TODO: default_set_power_policy = "Redfish Set Power Restore Policy  AlwaysOff"
-    default_set_power_policy = "Set BMC Power Policy  ALWAYS_POWER_OFF"
+    if redfish_rest_supported:
+        delete_errlogs_cmd = "Delete Error Logs  ${quiet}=${1}"
+        default_set_power_policy = "Set BMC Power Policy  ALWAYS_POWER_OFF"
+    else:
+        delete_errlogs_cmd = "Redfish Purge Event Log"
+        default_set_power_policy = "Redfish Set Power Restore Policy  AlwaysOff"
 else:
     default_power_on = "REST Power On"
     default_power_off = "REST Power Off"
-    delete_errlogs_cmd = "Delete Error Logs"
+    delete_errlogs_cmd = "Delete Error Logs  ${quiet}=${1}"
     default_set_power_policy = "Set BMC Power Policy  ALWAYS_POWER_OFF"
 boot_count = 0
 
@@ -263,7 +268,8 @@ def initial_plug_in_setup():
     additional_values = ["program_pid", "master_pid", "ffdc_dir_path",
                          "status_dir_path", "base_tool_dir_path",
                          "ffdc_list_file_path", "ffdc_report_list_path",
-                         "ffdc_summary_list_path", "execdir", "redfish_supported"]
+                         "ffdc_summary_list_path", "execdir", "redfish_supported",
+                         "redfish_rest_supported"]
 
     plug_in_vars = parm_list + additional_values
 
@@ -962,6 +968,12 @@ def test_loop_body():
             gpu.save_plug_in_value(soft_errors, pgm_name)
 
     if delete_errlogs:
+        # print error logs before delete
+        status, error_logs = grk.run_key_u("Get Error Logs")
+        pels = pel.peltool("-l", ignore_err=1)
+        log.print_error_logs(error_logs, "AdditionalData Message Severity")
+        gp.qprint_var(pels)
+
         # We need to purge error logs between boots or they build up.
         grk.run_key(delete_errlogs_cmd, ignore=1)
 
@@ -1140,6 +1152,12 @@ def obmc_boot_test_py(loc_boot_stack=None,
         return
 
     if delete_errlogs:
+        # print error logs before delete
+        status, error_logs = grk.run_key_u("Get Error Logs")
+        pels = pel.peltool("-l", ignore_err=1)
+        log.print_error_logs(error_logs, "AdditionalData Message Severity")
+        gp.qprint_var(pels)
+
         # Delete errlogs prior to doing any boot tests.
         grk.run_key(delete_errlogs_cmd, ignore=1)
 

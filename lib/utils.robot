@@ -503,7 +503,7 @@ Get Endpoint Paths
     # For a given string, look for prefix and suffix for matching expression.
     # Start of string followed by zero or more of any character followed by
     # any digit or lower case character.
-    ${resp}=  Get Matches  ${list}  regexp=^.*[0-9a-z_].${endpoint}\[0-9a-z]*$
+    ${resp}=  Get Matches  ${list}  regexp=^.*[0-9a-z_].${endpoint}\[_0-9a-z]*$  case_insensitive=${True}
 
     [Return]  ${resp}
 
@@ -532,6 +532,9 @@ Set BMC Power Policy
 
 Delete Error Logs
     [Documentation]  Delete error logs.
+    [Arguments]  ${quiet}=${0}
+    # Description of argument(s):
+    # quiet    If enabled, turns off logging to console.
 
     # Check if error logs entries exist, if not return.
     ${resp}=  OpenBMC Get Request  ${BMC_LOGGING_ENTRY}list  quiet=${1}
@@ -540,7 +543,7 @@ Delete Error Logs
     # Get the list of error logs entries and delete them all.
     ${elog_entries}=  Get URL List  ${BMC_LOGGING_ENTRY}
     FOR  ${entry}  IN  @{elog_entries}
-        Delete Error Log Entry  ${entry}
+        Delete Error Log Entry  ${entry}  quiet=${quiet}
     END
 
 
@@ -673,6 +676,25 @@ Redfish Set Power Restore Policy
 
     Redfish.Patch  /redfish/v1/Systems/system  body={"PowerRestorePolicy": "${power_restore_policy}"}
     ...  valid_status_codes=[${HTTP_OK}, ${HTTP_NO_CONTENT}]
+
+
+Set Auto Reboot Setting
+    [Documentation]  Set the given auto reboot setting (REST or Redfish).
+    [Arguments]  ${value}
+
+    # Description of argument(s):
+    # value    The reboot setting, 1 for enabling and 0 for disabling.
+
+    # This is to cater to boot call points and plugin script which will always
+    # send using value 0 or 1. This dictionary maps to redfish string values.
+    ${rest_redfish_dict}=  Create Dictionary
+    ...                    1=RetryAttempts
+    ...                    0=Disabled
+
+    Run Keyword If  ${REDFISH_REST_SUPPORTED} == ${TRUE}
+    ...    Set Auto Reboot  ${value}
+    ...  ELSE
+    ...    Redfish Set Auto Reboot  ${rest_redfish_dict["${value}"]}
 
 
 Set Auto Reboot

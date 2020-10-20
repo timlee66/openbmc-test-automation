@@ -196,7 +196,8 @@ Get Component URIs
     # uri_list          URI list.
 
     ${component_uris}=  Get Matches  ${uri_list}
-    ...  regexp=^.*[0-9a-z_].${component_name}\[0-9]*$
+    ...  regexp=^.*[0-9a-z_].${component_name}\[_0-9a-z]*$
+    ...  case_insensitive=${True}
     [Return]  ${component_uris}
 
 
@@ -274,10 +275,12 @@ Test SDR Info
     # component_name    Component name (e.g. "core", "dimm", etc.).
 
     ${component_uri_list}=  Get Component URIs  ${component_name}
-    : FOR  ${uri}  IN  @{component_uri_list}
-    \  ${component_name}=  Fetch From Right  ${uri}  motherboard/
-    \  Log To Console  ${component_name}
-    \  Verify SDR  ${component_name}
+
+    FOR  ${uri}  IN  @{component_uri_list}
+      ${component_name}=  Fetch From Right  ${uri}  motherboard/
+      Log To Console  ${component_name}
+      Verify SDR  ${component_name}
+    END
 
 
 Suite Setup Execution

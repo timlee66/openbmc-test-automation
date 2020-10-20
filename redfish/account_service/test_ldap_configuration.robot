@@ -21,7 +21,6 @@ ${old_ldap_privilege}   ${EMPTY}
 ${hostname}             ${EMPTY}
 ${test_ip}              10.6.6.6
 ${test_mask}            255.255.255.0
-${test_gw}              10.6.6.1
 
 ** Test Cases **
 
@@ -260,6 +259,14 @@ Update LDAP Group Name And Verify Operations
     Invalid_LDAP_Group_Name  group_privilege=NoAccess
     ...  valid_status_codes=[${HTTP_UNAUTHORIZED}, ${HTTP_FORBIDDEN}]
     #...  extra_status_codes=[${HTTP_INTERNAL_SERVER_ERROR}]
+    ${GROUP_NAME}            Administrator    [${HTTP_OK}, ${HTTP_NO_CONTENT}]
+    ${GROUP_NAME}            Operator         [${HTTP_UNAUTHORIZED}, ${HTTP_FORBIDDEN}]
+    ${GROUP_NAME}            ReadOnly         [${HTTP_UNAUTHORIZED}, ${HTTP_FORBIDDEN}]
+    ${GROUP_NAME}            NoAccess         [${HTTP_UNAUTHORIZED}, ${HTTP_FORBIDDEN}]
+    Invalid_LDAP_Group_Name  Administrator    [${HTTP_UNAUTHORIZED}, ${HTTP_FORBIDDEN}]
+    Invalid_LDAP_Group_Name  Operator         [${HTTP_UNAUTHORIZED}, ${HTTP_FORBIDDEN}]
+    Invalid_LDAP_Group_Name  ReadOnly         [${HTTP_UNAUTHORIZED}, ${HTTP_FORBIDDEN}]
+    Invalid_LDAP_Group_Name  NoAccess         [${HTTP_UNAUTHORIZED}, ${HTTP_FORBIDDEN}]
 
 
 Verify LDAP BaseDN Update And LDAP Login
@@ -375,6 +382,7 @@ Verify LDAP Authentication Without Password
     [Documentation]  Verify that LDAP user authentication without LDAP
     ...  user password fails.
     [Tags]  Verify_LDAP_Authentication_Without_Password
+    [Teardown]  Run Keywords  Redfish.Logout  AND  Redfish.Login
 
     ${status}=  Run Keyword And Return Status  Redfish.Login  ${LDAP_USER}
     Valid Value  status  [${False}]
@@ -449,6 +457,7 @@ Verify LDAP Authentication With Invalid LDAP User
     [Documentation]  Verify that LDAP user authentication for user not exist
     ...  in LDAP server and fails.
     [Tags]  Verify_LDAP_Authentication_With_Invalid_LDAP_User
+    [Teardown]  Run Keywords  Redfish.Logout  AND  Redfish.Login
 
     ${status}=  Run Keyword And Return Status  Redfish.Login  INVALID_LDAP_USER
     ...  ${LDAP_USER_PASSWORD}
@@ -783,7 +792,7 @@ Get LDAP Privilege
 Restore LDAP Privilege
     [Documentation]  Restore the LDAP privilege to its original value.
 
-    Return From Keyword If  '${old_ldap_privilege}' == '${EMPTY}'
+    Return From Keyword If  '${old_ldap_privilege}' == '${EMPTY}' or '${old_ldap_privilege}' == '[]'
     # Log back in to restore the original privilege.
     Update LDAP Configuration with LDAP User Role And Group  ${LDAP_TYPE}
     ...  ${old_ldap_privilege}  ${GROUP_NAME}
@@ -853,7 +862,9 @@ Update LDAP User Role And Configure IP Address
 
     Redfish.Login  ${LDAP_USER}  ${LDAP_USER_PASSWORD}
 
-    Add IP Address  ${test_ip}  ${test_mask}  ${test_gw}  ${valid_status_code}  ${extra_valid_status_code}
+    ${test_gateway}=  Get BMC Default Gateway
+
+    Add IP Address  ${test_ip}  ${test_mask}  ${test_gateway}  ${valid_status_code}
 
 
 Update LDAP User Role And Delete IP Address
@@ -868,8 +879,10 @@ Update LDAP User Role And Delete IP Address
     # group_name         The group name of user.
     # valid_status_code  The expected valid status code.
 
+    ${test_gateway}=  Get BMC Default Gateway
+
     # Configure IP address before deleting via LDAP user roles.
-    Add IP Address  ${test_ip}  ${test_mask}  ${test_gw}
+    Add IP Address  ${test_ip}  ${test_mask}  ${test_gateway}
 
     Update LDAP Configuration with LDAP User Role And Group  ${ldap_type}
     ...  ${group_privilege}  ${group_name}
@@ -899,3 +912,4 @@ Update LDAP User Role And Read Network Configuration
 
     Redfish.Login  ${LDAP_USER}  ${LDAP_USER_PASSWORD}
     Redfish.Get  ${REDFISH_NW_ETH0_URI}  valid_status_codes=[${valid_status_code}]
+
