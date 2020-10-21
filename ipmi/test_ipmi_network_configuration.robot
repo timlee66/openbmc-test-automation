@@ -192,12 +192,6 @@ Suite Setup Execution
 
     Redfish.Login
 
-    ${initial_lan_config}=  Get LAN Print Dict  ${CHANNEL_NUMBER}  ipmi_cmd_type=inband
-    Set Suite Variable  ${initial_lan_config}
-
-    Run Inband IPMI Standard Command
-    ...  lan set ${CHANNEL_NUMBER} ipsrc static  login_host=${1}
-
     ${lan_config}=  Get LAN Print Dict  ${CHANNEL_NUMBER}
     Set Suite Variable  ${ip_address}  ${lan_config['IP Address']}
     Set Suite Variable  ${subnet_mask}  ${lan_config['Subnet Mask']}
