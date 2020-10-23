@@ -6,7 +6,8 @@ Resource            ../../lib/openbmc_ffdc.robot
 Resource            ../../lib/dump_utils.robot
 
 Suite Setup         Redfish.Login
-Test Setup          Redfish Delete All BMC Dumps
+#Test Setup          Redfish Delete All BMC Dumps
+Test Setup          Delete All BMC Dump
 Test Teardown       Test Teardown Execution
 
 
@@ -61,6 +62,7 @@ Verify Dump Persistency On BMC Reset
     # Reset BMC.
     OBMC Reboot (off)
 
+    Redfish.Login
     ${dump_entries_after}=  redfish_utils.get_member_list  /redfish/v1/Managers/bmc/LogServices/Dump/Entries
     Lists Should Be Equal  ${dump_entries_before}  ${dump_entries_after}
 
@@ -72,7 +74,7 @@ Create User Initiated BMC Dump
 
     ${payload}=  Create Dictionary  DiagnosticDataType=Manager
     ${resp}=  Redfish.Post  /redfish/v1/Managers/bmc/LogServices/Dump/Actions/LogService.CollectDiagnosticData
-    ...  body=${payload}  valid_status_codes=[${HTTP_ACCEPTED}]
+    ...  body=${payload}  valid_status_codes=[${HTTP_ACCEPTED}, ${HTTP_OK}]
 
     # Example of response from above Redfish POST request.
     # "@odata.id": "/redfish/v1/TaskService/Tasks/0",
