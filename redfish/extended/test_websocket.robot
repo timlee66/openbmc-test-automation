@@ -78,7 +78,7 @@ Test BMC Websocket Dump Interface
 
     Delete All BMC Dump
 
-    Start Websocket Monitor  dump
+    Start Websocket Monitor  dump/bmc
     ${dump_id}=  Create User Initiated Dump
     Check Existence Of BMC Dump File  ${dump_id}
 

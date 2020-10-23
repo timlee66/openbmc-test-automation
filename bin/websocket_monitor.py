@@ -51,7 +51,7 @@ parser.add_argument(
     help='The password for the open BMC system.')
 parser.add_argument(
     '--monitor_type',
-    choices=['logging', 'dump'],
+    choices=['logging', 'dump/bmc'],
     default='logging',
     help='The type of notifications from websocket to monitor.')
 
