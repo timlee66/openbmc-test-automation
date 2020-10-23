@@ -9,7 +9,7 @@ Library                 ../lib/bmc_network_utils.py
 *** Variables ***
 # MAC input from user.
 ${MAC_ADDRESS}          ${EMPTY}
-
+${ETH_INTERFACE}  ethaddr
 
 *** Keywords ***
 
@@ -41,7 +41,7 @@ Set MAC Address
     ${active_channel_config}=  Get Active Channel Config
     ${ethernet_interface}=  Set Variable  ${active_channel_config['${CHANNEL_NUMBER}']['name']}
 
-    Write  fw_setenv ethaddr ${mac_address}
+    Write  fw_setenv ${ETH_INTERFACE} ${mac_address}
     OBMC Reboot (off)
 
     # Take SSH session post BMC reboot.
@@ -159,7 +159,7 @@ Get FW_Env MAC Address
     # ethaddr=xx:xx:xx:xx:xx:xx:xx
 
     ${cmd_output}  ${stderr}  ${rc}=  BMC Execute Command
-    ...  /sbin/fw_printenv | grep ethaddr
+    ...  /sbin/fw_printenv | grep ${ETH_INTERFACE}
 
     # Split the line and return MAC address.
     # Split list data:
