@@ -417,6 +417,7 @@ Configure DNS Server And Check Persistency
     Configure Static Name Servers  ${static_name_servers}
     # Reboot BMC and verify persistency.
     OBMC Reboot (off)
+    Redfish.Login
     Verify CLI and Redfish Nameservers
 
 Configure Loopback IP For Gateway
