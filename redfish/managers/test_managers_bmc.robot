@@ -9,8 +9,8 @@ Resource         ../../lib/open_power_utils.robot
 Resource         ../../lib/bmc_network_utils.robot
 Library          ../../lib/gen_robot_valid.py
 
-Test Setup       Test Setup Execution
-Test Teardown    Test Teardown Execution
+#Test Setup       Test Setup Execution
+#Test Teardown    Test Teardown Execution
 
 
 *** Variables ***
