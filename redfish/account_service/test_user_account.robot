@@ -235,22 +235,15 @@ Verify Admin User Privilege
 Verify Operator User Privilege
     [Documentation]  Verify operator user privilege.
     [Tags]  Verify_operator_User_Privilege
-
     Redfish Create User  admin_user  TestPwd123  Administrator  ${True}
     Redfish Create User  operator_user  TestPwd123  Operator  ${True}
 
     Redfish.Logout
     # Login with operator user.
-    #Redfish.Login  operator_user  TestPwd123
-
-    Redfish.Login
+    Redfish.Login  operator_user  TestPwd123
 
     # Verify BMC reset.
     Run Keyword And Expect Error  ValueError*  Redfish BMC Reset Operation
-
-    Redfish.Logout
-
-    Redfish.Login  operator_user  TestPwd123
 
     # Attempt to change password of admin user with operator user.
     Redfish.Patch  /redfish/v1/AccountService/Accounts/admin_user  body={'Password': 'NewTestPwd123'}
