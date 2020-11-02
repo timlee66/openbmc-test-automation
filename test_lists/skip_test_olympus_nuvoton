@@ -98,6 +98,7 @@
 #  No need to test it in extended part
 #  We already have Update Service test
 -e Redfish_BMC_Code_Update
+-e Redfish_Firmware_Update_Loop
 
 # Test cases are NA for Olympus
 -e Verify CPU Present
