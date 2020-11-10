@@ -864,7 +864,7 @@ Update LDAP User Role And Configure IP Address
 
     ${test_gateway}=  Get BMC Default Gateway
 
-    Add IP Address  ${test_ip}  ${test_mask}  ${test_gateway}  ${valid_status_code}
+    Add IP Address  ${test_ip}  ${test_mask}  ${test_gateway}  ${valid_status_code}  ${extra_valid_status_code}
 
 
 Update LDAP User Role And Delete IP Address
