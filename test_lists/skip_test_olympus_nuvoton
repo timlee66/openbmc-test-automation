@@ -109,6 +109,10 @@
 # Olympus contains the mac-address package so the overwritten mac will be restored after rebooting.
 -e Configure Valid MAC And Check Persistency
 
+# phosphor-software-manager change design that allow two same images can be updated twice.
+# That against this test case. Thus, we skip this temporarily and wait community response.
+-e Install_Same_Image_Two_Times
+
 -v MACHINE_TYPE:olympus-nuvoton
 -v log_file_path:log.txt
 -v FORCE_UPDATE:1
