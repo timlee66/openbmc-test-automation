@@ -62,3 +62,11 @@ Verify IPMI Disable Persistency After BMC Reboot
     Run Keyword and Expect Error  *Unable to establish IPMI*
     ...  Run External IPMI Standard Command  lan print ${CHANNEL_NUMBER}
 
+    # Enable IPMI and verify
+    Run Inband IPMI Standard Command  lan set ${CHANNEL_NUMBER} access on
+    ${lan_print_info}=  Get Lan Print Dict  ${CHANNEL_NUMBER}
+
+    ${openbmc_host_name}  ${openbmc_ip}=  Get Host Name IP  host=${OPENBMC_HOST}
+    Rprint Vars  lan_print_info  openbmc_ip
+    Valid Value  lan_print_info['IP Address']  ['${openbmc_ip}']
+
